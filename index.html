@@ -168,6 +168,42 @@
     #restartBtn:hover {
       background:#aa0000;
     }
+
+    #jobBtn {
+      display:none;
+      padding:8px 12px;
+      cursor:pointer;
+      background:#1a5c1a;
+      color:white;
+      border:1px solid #4caf50;
+    }
+    #jobBtn:hover { background:#236b23; }
+    #jobBtn:disabled { opacity:0.5; cursor:default; }
+
+    #jobDisplay {
+      margin-top:6px;
+      font-size:13px;
+      color:#aaffaa;
+    }
+
+    #jobPromptOverlay {
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,0.85);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index:999;
+    }
+    #jobPromptBox {
+      background:#1a1a1a;
+      border:1px solid #4caf50;
+      padding:20px;
+      max-width:340px;
+      text-align:center;
+      box-shadow:0 0 14px #000;
+    }
+    #jobPromptBox button { margin-top:10px; }
   </style>
 </head>
 <body>
@@ -181,6 +217,16 @@
       <div style="margin-top:8px;">
         <button id="schoolYesBtn">Yes, send to school</button>
         <button id="schoolNoBtn">No</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="jobPromptOverlay">
+    <div id="jobPromptBox">
+      <div id="jobPromptText"></div>
+      <div style="margin-top:8px;">
+        <button id="jobYesBtn">Yes</button>
+        <button id="jobNoBtn">No</button>
       </div>
     </div>
   </div>
@@ -207,6 +253,8 @@
         <button id="feedBtn">Feed Jefferson (-$10)</button>
         <button id="upgradeBtn">Faster Years Upgrade (-$1000)</button>
         <button id="gamblingToggleBtn">Gambling (Unlocks at age 18)</button>
+        <button id="jobBtn">💼 Get a Job (Free, unlocks at 16)</button>
+        <div id="jobDisplay"></div>
         <br>
         <button id="restartBtn">🔄 Restart Game</button>
       </div>
@@ -259,7 +307,8 @@
 
     function freshState() {
       return { years:0, months:0, stage:'baby', isDead:false, money:0,
-               feedLevel:MAX_FEED_LEVEL, knowledge:0, hasYearUpgrade:false };
+               feedLevel:MAX_FEED_LEVEL, knowledge:0, hasYearUpgrade:false,
+               hasJob:false, jobIncomePerMonth:0, lastJobEventYear:0 };
     }
 
     function loadState() {
@@ -296,8 +345,16 @@
     const gamblingMessage     = document.getElementById('gamblingMessage');
     const gambleBtn           = document.getElementById('gambleBtn');
     const restartBtn          = document.getElementById('restartBtn');
+    const jobBtn              = document.getElementById('jobBtn');
+    const jobDisplay          = document.getElementById('jobDisplay');
+    const jobPromptOverlay    = document.getElementById('jobPromptOverlay');
+    const jobPromptText       = document.getElementById('jobPromptText');
+    const jobYesBtn           = document.getElementById('jobYesBtn');
+    const jobNoBtn            = document.getElementById('jobNoBtn');
 
     let waitingForSchoolChoice = false;
+    let waitingForJobChoice    = false;
+    let pendingJobEvent        = null; // { type: 'raise'|'newjob', amount }
     let monthIntervalId        = null;
     let countdownIntervalId    = null;
     let currentMsPerMonth      = state.hasYearUpgrade ? FAST_MS_PER_MONTH : BASE_MS_PER_MONTH;
@@ -360,6 +417,20 @@
 
       // Restart button only visible when dead
       restartBtn.style.display = state.isDead ? 'inline-block' : 'none';
+
+      // Job button: show if alive and not yet hired, unlocks at 16
+      if (state.isDead || state.hasJob) {
+        jobBtn.style.display = 'none';
+      } else {
+        jobBtn.style.display = 'inline-block';
+        jobBtn.disabled = state.years < 16;
+        jobBtn.textContent = state.years < 16
+          ? `💼 Get a Job (Unlocks at 16)`
+          : `💼 Get a Job (Free)`;
+      }
+      jobDisplay.textContent = state.hasJob
+        ? `💼 Job: +$${state.jobIncomePerMonth}/month`
+        : '';
     }
 
     function monthIncomeBase(y) {
@@ -401,11 +472,23 @@
       state.feedLevel = Math.max(0, state.feedLevel - FEED_DECAY_PER_MONTH);
       state.money += Math.round(monthIncomeBase(state.years) * knowledgeMultiplier());
 
+      // Job income
+      if (state.hasJob) state.money += state.jobIncomePerMonth;
+
       if (state.months >= MONTHS_PER_YEAR) {
         state.months -= MONTHS_PER_YEAR;
         state.years += 1;
         state.money += Math.round(yearIncomeBase(state.years) * knowledgeMultiplier());
         maybePromptSchool(state.years);
+
+        // Job event every 2 years after getting a job, skip if another prompt pending
+        if (state.hasJob && !waitingForSchoolChoice && !waitingForJobChoice) {
+          const yearsSinceLastEvent = state.years - state.lastJobEventYear;
+          if (yearsSinceLastEvent >= 2) {
+            maybePromptJobEvent();
+          }
+        }
+
         if (state.years % 3 === 0 && state.feedLevel < MIN_SAFE_FEED_FOR_CHECK) {
           state.isDead = true;
           state.stage = 'dead';
@@ -415,6 +498,55 @@
       if (!state.isDead) state.stage = computeStage(state.years);
       saveState(state); updateView();
     }
+
+    // Job event: every 2 years after hiring — raise or new job offer (20% chance)
+    function maybePromptJobEvent() {
+      if (state.isDead || !state.hasJob || waitingForJobChoice) return;
+      waitingForJobChoice = true;
+      state.lastJobEventYear = state.years;
+
+      const isNewJobOffer = Math.random() < 0.2;
+      if (isNewJobOffer) {
+        const newPay = state.jobIncomePerMonth * 2;
+        pendingJobEvent = { type: 'newjob', amount: newPay };
+        jobPromptText.textContent =
+          `🎉 New Opportunity!\n\nJefferson has been offered a new job paying $${newPay}/month — double the current $${state.jobIncomePerMonth}/month.\n\nAccept the new job?`;
+      } else {
+        const raiseAmount = Math.round(state.jobIncomePerMonth * 0.2) || 2;
+        pendingJobEvent = { type: 'raise', amount: raiseAmount };
+        jobPromptText.textContent =
+          `📈 Raise Time!\n\nJefferson's boss is offering a raise of +$${raiseAmount}/month (on top of current $${state.jobIncomePerMonth}/month).\n\nAccept the raise?`;
+      }
+      jobPromptOverlay.style.display = 'flex';
+    }
+
+    function handleJobChoice(accept) {
+      if (!waitingForJobChoice || !pendingJobEvent) return;
+      waitingForJobChoice = false;
+      jobPromptOverlay.style.display = 'none';
+
+      if (accept) {
+        if (pendingJobEvent.type === 'newjob') {
+          state.jobIncomePerMonth = pendingJobEvent.amount;
+        } else {
+          state.jobIncomePerMonth += pendingJobEvent.amount;
+        }
+      }
+      pendingJobEvent = null;
+      saveState(state); updateView();
+    }
+
+    jobYesBtn.addEventListener('click', () => handleJobChoice(true));
+    jobNoBtn.addEventListener('click',  () => handleJobChoice(false));
+
+    // Get job button
+    jobBtn.addEventListener('click', () => {
+      if (state.isDead || state.hasJob || state.years < 16) return;
+      state.hasJob = true;
+      state.jobIncomePerMonth = 10;
+      state.lastJobEventYear = state.years;
+      saveState(state); updateView();
+    });
 
     feedBtn.addEventListener('click', () => {
       if (state.isDead) return;
@@ -461,7 +593,10 @@
       saveState(state);
       currentMsPerMonth = BASE_MS_PER_MONTH;
       waitingForSchoolChoice = false;
+      waitingForJobChoice = false;
+      pendingJobEvent = null;
       schoolPromptOverlay.style.display = 'none';
+      jobPromptOverlay.style.display = 'none';
       gamblingPanel.style.display = 'none';
       resetTimers();
       updateView();
@@ -493,4 +628,3 @@
   </script>
 </body>
 </html>
-
