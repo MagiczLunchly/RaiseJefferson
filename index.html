@@ -681,6 +681,74 @@
       updateView();
     });
 
+    // --- Admin Panel ---
+    const ADMIN_PASSWORD = 'Password 12th';
+    let adminUnlocked = false;
+
+    const adminToggleBtn    = document.getElementById('adminToggleBtn');
+    const adminLoginPanel   = document.getElementById('adminLoginPanel');
+    const adminPasswordInput= document.getElementById('adminPasswordInput');
+    const adminLoginBtn     = document.getElementById('adminLoginBtn');
+    const adminLoginMsg     = document.getElementById('adminLoginMsg');
+    const adminPanel        = document.getElementById('adminPanel');
+    const adminAgeInput     = document.getElementById('adminAgeInput');
+    const adminSetAgeBtn    = document.getElementById('adminSetAgeBtn');
+    const adminMoneyInput   = document.getElementById('adminMoneyInput');
+    const adminSetMoneyBtn  = document.getElementById('adminSetMoneyBtn');
+    const adminMsg          = document.getElementById('adminMsg');
+
+    adminToggleBtn.addEventListener('click', () => {
+      if (adminUnlocked) {
+        const isOpen = adminPanel.style.display === 'block';
+        adminPanel.style.display = isOpen ? 'none' : 'block';
+        adminMsg.textContent = '';
+      } else {
+        const isOpen = adminLoginPanel.style.display === 'block';
+        adminLoginPanel.style.display = isOpen ? 'none' : 'block';
+        if (!isOpen) {
+          adminLoginMsg.textContent = '';
+          adminPasswordInput.value = '';
+          setTimeout(() => adminPasswordInput.focus(), 50);
+        }
+      }
+    });
+
+    adminLoginBtn.addEventListener('click', () => {
+      if (adminPasswordInput.value === ADMIN_PASSWORD) {
+        adminUnlocked = true;
+        adminLoginPanel.style.display = 'none';
+        adminPanel.style.display = 'block';
+        adminToggleBtn.textContent = '⚙️ Admin';
+        adminMsg.textContent = '';
+      } else {
+        adminLoginMsg.textContent = 'Wrong password.';
+      }
+    });
+
+    adminPasswordInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') adminLoginBtn.click();
+    });
+
+    adminSetAgeBtn.addEventListener('click', () => {
+      const val = parseInt(adminAgeInput.value, 10);
+      if (isNaN(val) || val < 0) { adminMsg.textContent = 'Invalid age.'; return; }
+      state.years = val;
+      state.months = 0;
+      state.stage = state.isDead ? 'dead' : computeStage(val);
+      // re-anchor job event year so we don't immediately trigger
+      if (state.hasJob) state.lastJobEventYear = val;
+      saveState(state); updateView();
+      adminMsg.textContent = `✅ Age set to ${val}.`;
+    });
+
+    adminSetMoneyBtn.addEventListener('click', () => {
+      const val = parseInt(adminMoneyInput.value, 10);
+      if (isNaN(val) || val < 0) { adminMsg.textContent = 'Invalid amount.'; return; }
+      state.money = val;
+      saveState(state); updateView();
+      adminMsg.textContent = `✅ Money set to $${val}.`;
+    });
+
     function startTimers() {
       nextMonthRemainingMs = currentMsPerMonth;
       countdownIntervalId = setInterval(() => {
