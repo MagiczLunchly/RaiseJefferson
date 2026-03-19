@@ -140,6 +140,29 @@
     #schoolPromptBox button {
       margin-top:10px;
     }
+
+    /* Gambling menu */
+    #gamblingPanel {
+      margin-top:15px;
+      padding:10px;
+      border:1px solid #444;
+      background:#181818;
+      display:none;
+    }
+    #gamblingPanel input {
+      width:80px;
+      padding:4px;
+      margin-top:4px;
+      margin-bottom:4px;
+      background:#000;
+      border:1px solid #555;
+      color:white;
+    }
+    #gamblingMessage {
+      margin-top:5px;
+      min-height:18px;
+      font-size:13px;
+    }
   </style>
 </head>
 <body>
@@ -187,6 +210,17 @@
       <div id="controls">
         <button id="feedBtn">Feed Jefferson (-$10)</button>
         <button id="upgradeBtn">Faster Years Upgrade (-$1000)</button>
+        <button id="gamblingToggleBtn">Gambling (Unlocks at age 18)</button>
+      </div>
+
+      <!-- Gambling menu -->
+      <div id="gamblingPanel">
+        <div><strong>Gambling</strong> (Hard to win, but possible)</div>
+        <div>Bet amount:</div>
+        <input type="number" id="gamblingBet" min="1" value="10" />
+        <br />
+        <button id="gambleBtn">Gamble!</button>
+        <div id="gamblingMessage"></div>
       </div>
     </div>
 
@@ -225,16 +259,16 @@
     // Feed meter constants
     const MAX_FEED_LEVEL       = 100; // 0–100
     const BASE_FEED_AMOUNT     = 40;
-    const UPGRADED_FEED_AMOUNT = 45;  // slightly more effective after upgrade
+    const UPGRADED_FEED_AMOUNT = 45;
     const BASE_FEED_COST       = 10;
-    const UPGRADED_FEED_COST   = 8;   // slightly cheaper after upgrade
+    const UPGRADED_FEED_COST   = 8;
     const FEED_DECAY_PER_MONTH = 5;
     const MIN_SAFE_FEED_FOR_CHECK = 20;
 
     // Knowledge constants
-    const MAX_KNOWLEDGE           = 100;
-    const BASE_SCHOOL_COST        = 100;
-    const UPGRADED_SCHOOL_COST    = 80;   // cheaper with upgrade
+    const MAX_KNOWLEDGE             = 100;
+    const BASE_SCHOOL_COST          = 100;
+    const UPGRADED_SCHOOL_COST      = 80;
     const KNOWLEDGE_GAIN_PER_SCHOOL = 10;
 
     // Year upgrade
@@ -309,6 +343,12 @@
     const schoolNoBtn         = document.getElementById('schoolNoBtn');
 
     const upgradeBtn          = document.getElementById('upgradeBtn');
+
+    const gamblingToggleBtn   = document.getElementById('gamblingToggleBtn');
+    const gamblingPanel       = document.getElementById('gamblingPanel');
+    const gamblingBetInput    = document.getElementById('gamblingBet');
+    const gamblingMessage     = document.getElementById('gamblingMessage');
+    const gambleBtn           = document.getElementById('gambleBtn');
 
     let waitingForSchoolChoice = false;
     let pendingSchoolYear      = null;
@@ -404,6 +444,13 @@
         upgradeBtn.style.display = 'inline-block';
         upgradeBtn.disabled = state.money < YEAR_UPGRADE_COST;
         upgradeBtn.textContent = `Faster Years Upgrade (-$${YEAR_UPGRADE_COST})`;
+      }
+
+      // gambling button text is static, but we disable before 18
+      const canGamble = !state.isDead && state.years >= 18;
+      gamblingToggleBtn.disabled = !canGamble;
+      if (!canGamble) {
+        gamblingPanel.style.display = 'none';
       }
     }
 
@@ -539,6 +586,59 @@
     }
 
     upgradeBtn.addEventListener('click', buyYearUpgrade);
+
+    // Gambling logic
+    function toggleGamblingPanel() {
+      if (state.isDead || state.years < 18) return;
+      if (gamblingPanel.style.display === 'none' || gamblingPanel.style.display === '') {
+        gamblingPanel.style.display = 'block';
+        gamblingMessage.textContent = '';
+      } else {
+        gamblingPanel.style.display = 'none';
+      }
+    }
+
+    gamblingToggleBtn.addEventListener('click', toggleGamblingPanel);
+
+    function doGamble() {
+      if (state.isDead) {
+        gamblingMessage.textContent = 'Jefferson is dead. No more gambling.';
+        return;
+      }
+      if (state.years < 18) {
+        gamblingMessage.textContent = 'You must be at least 18 to gamble.';
+        return;
+      }
+
+      const bet = parseInt(gamblingBetInput.value, 10);
+      if (isNaN(bet) || bet <= 0) {
+        gamblingMessage.textContent = 'Enter a valid bet amount.';
+        return;
+      }
+      if (bet > state.money) {
+        gamblingMessage.textContent = 'You do not have enough money for that bet.';
+        return;
+      }
+
+      // Hard to win: 30% win, 70% lose
+      const roll = Math.random(); // 0–1
+      state.money -= bet; // first take the bet
+
+      if (roll < 0.3) {
+        // win 2x (profit = +bet)
+        const winnings = bet * 2;
+        state.money += winnings;
+        gamblingMessage.textContent = `You WON! Jefferson earned $${winnings}.`;
+      } else {
+        // lose bet
+        gamblingMessage.textContent = `You lost $${bet}. Better luck next time.`;
+      }
+
+      saveState(state);
+      updateView();
+    }
+
+    gambleBtn.addEventListener('click', doGamble);
 
     // --- Countdown to next month and timers ---
     function updateNextMonthTimer(deltaMs) {
