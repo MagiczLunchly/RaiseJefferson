@@ -2,10 +2,21 @@
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title>Pet Game</title>
+  <title>Pet Life</title>
   <style>
-    body { font-family: sans-serif; background:#111; color:white; text-align:center; }
-    #petWrapper { position:relative; width:256px; height:256px; margin:20px auto; }
+    body {
+      font-family: sans-serif;
+      background:#111;
+      color:white;
+      text-align:center;
+    }
+
+    #petWrapper {
+      position:relative;
+      width:256px;   /* adjust if you want bigger/smaller */
+      height:256px;
+      margin:20px auto;
+    }
 
     #baseSprite,
     .overlay {
@@ -14,32 +25,40 @@
       left:0;
       width:100%;
       height:100%;
-      object-fit:contain; /* keeps aspect ratio */
+      object-fit:contain;
       pointer-events:none;
     }
 
-    /* Fine‑tune overlays to fit your base sprite */
+    /* Bigger diaper, moved up onto torso */
     #diaperOverlay {
-      width:55%;          /* adjust */
-      left:22%;           /* adjust */
-      top:55%;            /* adjust */
+      position:absolute;
+      width:70%;     /* bigger */
+      left:15%;      /* recenter */
+      top:48%;       /* move up toward torso */
     }
 
+    /* Beard on face, used for adult + old */
     #beardOverlay {
-      width:45%;          /* adjust */
-      left:28%;           /* adjust */
-      top:42%;            /* adjust */
+      position:absolute;
+      width:40%;     /* size of beard */
+      left:30%;      /* horizontal position on head */
+      top:32%;       /* vertical position (face) */
     }
 
-    button { margin:5px; padding:8px 12px; }
+    button {
+      margin:5px;
+      padding:8px 12px;
+      cursor:pointer;
+    }
   </style>
 </head>
 <body>
   <h1>Pet Life</h1>
+
   <div id="status"></div>
 
   <div id="petWrapper">
-    <!-- your main sprite -->
+    <!-- base sprite -->
     <img id="baseSprite"
          src="https://i.ibb.co/nNqGSWWN/IMG-2528.png"
          alt="pet" />
@@ -49,7 +68,7 @@
          src="https://png.pngtree.com/png-vector/20231214/ourmid/pngtree-diapers-flat-style-cartoon-free-buckle-hand-drawn-daily-necessities-png-image_11338185.png"
          style="display:none;" />
 
-    <!-- beard overlay (used for teen+adult+old as you requested) -->
+    <!-- beard overlay (adult + old) -->
     <img id="beardOverlay" class="overlay"
          src="https://www.freepnglogos.com/uploads/beard-png/mustache-brown-beard-transparent-png-stickpng-1.png"
          style="display:none;" />
@@ -61,6 +80,7 @@
   </div>
 
   <script>
+    // Save key and stages
     const SAVE_KEY = 'petSave';
     const stages = ['baby', 'teen', 'adult', 'old', 'dead'];
 
@@ -82,21 +102,26 @@
 
     let state = loadState();
 
-    const statusEl = document.getElementById('status');
+    const statusEl      = document.getElementById('status');
     const diaperOverlay = document.getElementById('diaperOverlay');
     const beardOverlay  = document.getElementById('beardOverlay');
-    const ageBtn   = document.getElementById('ageBtn');
-    const resetBtn = document.getElementById('resetBtn');
+    const ageBtn        = document.getElementById('ageBtn');
+    const resetBtn      = document.getElementById('resetBtn');
 
     function updateView() {
+      // hide all overlays first
       diaperOverlay.style.display = 'none';
       beardOverlay.style.display  = 'none';
 
+      // overlay rules:
+      // baby  -> diaper
+      // teen  -> nothing
+      // adult -> beard
+      // old   -> beard
+      // dead  -> nothing
       if (state.stage === 'baby') {
         diaperOverlay.style.display = 'block';
-      } else if (state.stage === 'teen' ||
-                 state.stage === 'adult' ||
-                 state.stage === 'old') {
+      } else if (state.stage === 'adult' || state.stage === 'old') {
         beardOverlay.style.display = 'block';
       }
 
@@ -111,6 +136,7 @@
 
     function ageUp() {
       if (state.isDead) return;
+
       const idx = stages.indexOf(state.stage);
       if (idx < stages.length - 1) {
         state.stage = stages[idx + 1];
@@ -118,6 +144,7 @@
       if (state.stage === 'dead') {
         state.isDead = true;
       }
+
       saveState(state);
       updateView();
     }
@@ -125,13 +152,14 @@
     ageBtn.addEventListener('click', ageUp);
 
     resetBtn.addEventListener('click', () => {
-      if (!confirm('Wipe your pet and start a new one?')) return;
+      if (!confirm('This will wipe your pet and start a new one. Continue?')) return;
       localStorage.removeItem(SAVE_KEY);
       state = { stage: 'baby', isDead: false };
       saveState(state);
       updateView();
     });
 
+    // initial draw
     updateView();
   </script>
 </body>
