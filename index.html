@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title>Pet Life</title>
+  <title>Raise a Jefferson</title>
   <style>
     body {
       font-family: sans-serif;
@@ -16,7 +16,7 @@
       margin-top:10px;
     }
 
-    /* Layout: UI left, pet right */
+    /* Layout: UI left, Jefferson right */
     #layout {
       display:flex;
       align-items:flex-start;
@@ -59,7 +59,7 @@
     #beardOverlay {
       position:absolute;
       width:35%;
-      left:40%;  /* more to the right side */
+      left:40%;
       top:0%;
     }
 
@@ -93,6 +93,21 @@
       width:100%;
     }
 
+    /* knowledge meter bar */
+    #knowledgeMeterBar {
+      width:200px;
+      height:20px;
+      border:1px solid #fff;
+      margin:5px 0;
+      background:#222;
+      position:relative;
+    }
+    #knowledgeMeterFill {
+      height:100%;
+      background:#2196f3;
+      width:0%;
+    }
+
     /* top-right timer for next month */
     #nextMonthTimer {
       position:fixed;
@@ -103,13 +118,48 @@
       padding:6px 10px;
       border-radius:4px;
     }
+
+    /* full-screen school prompt */
+    #schoolPromptOverlay {
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,0.8);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index:999;
+    }
+    #schoolPromptBox {
+      background:#222;
+      border:1px solid #555;
+      padding:20px;
+      max-width:320px;
+      text-align:center;
+      box-shadow:0 0 10px #000;
+    }
+    #schoolPromptBox button {
+      margin-top:10px;
+    }
   </style>
 </head>
 <body>
-  <h1>Pet Life</h1>
+  <h1>Raise a Jefferson</h1>
 
   <!-- Top-right countdown -->
   <div id="nextMonthTimer">Next month in: 10s</div>
+
+  <!-- Yearly school prompt overlay -->
+  <div id="schoolPromptOverlay">
+    <div id="schoolPromptBox">
+      <div id="schoolPromptText">
+        Send Jefferson to school this year for $100?
+      </div>
+      <div style="margin-top:8px;">
+        <button id="schoolYesBtn">Yes, send to school (-$100)</button>
+        <button id="schoolNoBtn">No</button>
+      </div>
+    </div>
+  </div>
 
   <div id="layout">
     <!-- LEFT: UI -->
@@ -126,19 +176,25 @@
           <div id="feedMeterFill"></div>
         </div>
         <div id="feedText"></div>
+
+        <div style="margin-top:8px;">Knowledge meter:</div>
+        <div id="knowledgeMeterBar">
+          <div id="knowledgeMeterFill"></div>
+        </div>
+        <div id="knowledgeText"></div>
       </div>
 
       <div id="controls">
-        <button id="feedBtn">Feed (-$10)</button>
+        <button id="feedBtn">Feed Jefferson (-$10)</button>
       </div>
     </div>
 
-    <!-- RIGHT: PET -->
+    <!-- RIGHT: JEFFERSON -->
     <div id="petWrapper">
       <!-- base sprite -->
       <img id="baseSprite"
            src="https://i.ibb.co/nNqGSWWN/IMG-2528.png"
-           alt="pet" />
+           alt="Jefferson" />
 
       <!-- baby diaper overlay -->
       <img id="diaperOverlay" class="overlay"
@@ -171,6 +227,11 @@
     const FEED_COST = 10;           // dollars per feed
     const MIN_SAFE_FEED_FOR_CHECK = 20; // if below at 3-year check → die
 
+    // Knowledge constants
+    const MAX_KNOWLEDGE = 100;
+    const SCHOOL_COST   = 100;
+    const KNOWLEDGE_GAIN_PER_SCHOOL = 10; // each year you send him adds this
+
     function loadState() {
       const raw = localStorage.getItem(SAVE_KEY);
       if (!raw) {
@@ -180,7 +241,8 @@
           stage: 'baby',
           isDead: false,
           money: 0,
-          feedLevel: MAX_FEED_LEVEL
+          feedLevel: MAX_FEED_LEVEL,
+          knowledge: 0
         };
       }
       try {
@@ -191,7 +253,8 @@
           stage: 'baby',
           isDead: false,
           money: 0,
-          feedLevel: MAX_FEED_LEVEL
+          feedLevel: MAX_FEED_LEVEL,
+          knowledge: 0
         }, data);
       } catch {
         return {
@@ -200,7 +263,8 @@
           stage: 'baby',
           isDead: false,
           money: 0,
-          feedLevel: MAX_FEED_LEVEL
+          feedLevel: MAX_FEED_LEVEL,
+          knowledge: 0
         };
       }
     }
@@ -223,13 +287,28 @@
     const feedText      = document.getElementById('feedText');
     const feedBtn       = document.getElementById('feedBtn');
 
-    const nextMonthTimerEl = document.getElementById('nextMonthTimer');
+    const knowledgeMeterFill = document.getElementById('knowledgeMeterFill');
+    const knowledgeText      = document.getElementById('knowledgeText');
+
+    const nextMonthTimerEl   = document.getElementById('nextMonthTimer');
+
+    const schoolPromptOverlay = document.getElementById('schoolPromptOverlay');
+    const schoolYesBtn        = document.getElementById('schoolYesBtn');
+    const schoolNoBtn         = document.getElementById('schoolNoBtn');
+
+    let waitingForSchoolChoice = false;
+    let pendingSchoolYear      = null;
 
     function computeStage(years) {
       if (years < STAGE_BABY_MAX) return 'baby';
       if (years < STAGE_TEEN_MAX) return 'teen';
       if (years < STAGE_ADULT_MAX) return 'adult';
       return 'old';
+    }
+
+    function knowledgeMultiplier() {
+      // 0 knowledge = 1x, 100 knowledge = 2x
+      return 1 + (state.knowledge / MAX_KNOWLEDGE);
     }
 
     function updateView() {
@@ -247,49 +326,100 @@
 
       statusEl.textContent = state.isDead
         ? `Stage: DEAD (PERMANENTLY)`
-        : `Stage: ${state.stage.toUpperCase()}`;
+        : `Stage: ${state.stage.toUpperCase()} — Raise a Jefferson`;
 
       ageDisplay.textContent    = `Age: ${state.years} years`;
       monthsDisplay.textContent = `Months alive: ${state.months}`;
       moneyDisplay.textContent  = `Money: $${state.money}`;
 
       // feed meter
-      const clamped = Math.max(0, Math.min(MAX_FEED_LEVEL, state.feedLevel));
-      const pct = (clamped / MAX_FEED_LEVEL) * 100;
-      feedMeterFill.style.width = pct + '%';
+      const clampedFeed = Math.max(0, Math.min(MAX_FEED_LEVEL, state.feedLevel));
+      const feedPct = (clampedFeed / MAX_FEED_LEVEL) * 100;
+      feedMeterFill.style.width = feedPct + '%';
 
-      if (clamped > 70) {
+      if (clampedFeed > 70) {
         feedText.textContent = 'Well fed';
-      } else if (clamped > 40) {
+      } else if (clampedFeed > 40) {
         feedText.textContent = 'Hungry';
-      } else if (clamped > 10) {
+      } else if (clampedFeed > 10) {
         feedText.textContent = 'Very hungry';
       } else {
-        feedText.textContent = 'Starving! Feed soon or risk death.';
+        feedText.textContent = 'Starving! Feed Jefferson soon or risk death.';
       }
 
       feedBtn.disabled = state.isDead || state.money < FEED_COST;
+
+      // knowledge meter
+      const clampedKnow = Math.max(0, Math.min(MAX_KNOWLEDGE, state.knowledge));
+      const knowPct = (clampedKnow / MAX_KNOWLEDGE) * 100;
+      knowledgeMeterFill.style.width = knowPct + '%';
+
+      if (clampedKnow === 0) {
+        knowledgeText.textContent = 'Knowledge: none';
+      } else if (clampedKnow < 30) {
+        knowledgeText.textContent = 'Knowledge: low';
+      } else if (clampedKnow < 70) {
+        knowledgeText.textContent = 'Knowledge: educated';
+      } else {
+        knowledgeText.textContent = 'Knowledge: very smart';
+      }
     }
 
-    // Money scaling
-    function monthIncomeMultiplier(years) {
+    // Money scaling: now includes knowledge multiplier
+    function monthIncomeBase(years) {
       if (years < 10) return 1;
       if (years < 20) return 2;
       if (years < 60) return 3;
       return 4;
     }
 
-    function yearIncomeMultiplier(years) {
-      if (years < 10) return 1;
-      if (years < 20) return 2;
-      if (years < 60) return 3;
-      return 4;
+    function yearIncomeBase(years) {
+      if (years < 10) return 10;
+      if (years < 20) return 15;
+      if (years < 60) return 20;
+      return 25;
     }
 
     // Well taken care of at 3-year checks
     function isWellTakenCareOf(state) {
       return state.feedLevel >= MIN_SAFE_FEED_FOR_CHECK;
     }
+
+    function maybePromptSchool(yearJustReached) {
+      if (state.isDead) return;
+      // only if not already waiting on a choice
+      if (waitingForSchoolChoice) return;
+
+      waitingForSchoolChoice = true;
+      pendingSchoolYear = yearJustReached;
+
+      const text = `Jefferson is now ${yearJustReached} years old.\n\nSend Jefferson to school this year for $${SCHOOL_COST}?`;
+      document.getElementById('schoolPromptText').textContent = text;
+      schoolPromptOverlay.style.display = 'flex';
+    }
+
+    function handleSchoolChoice(goToSchool) {
+      if (!waitingForSchoolChoice) return;
+      waitingForSchoolChoice = false;
+      schoolPromptOverlay.style.display = 'none';
+
+      if (goToSchool && !state.isDead) {
+        if (state.money >= SCHOOL_COST) {
+          state.money -= SCHOOL_COST;
+          state.knowledge += KNOWLEDGE_GAIN_PER_SCHOOL;
+          if (state.knowledge > MAX_KNOWLEDGE) {
+            state.knowledge = MAX_KNOWLEDGE;
+          }
+        }
+        // if not enough money, nothing happens
+      }
+
+      saveState(state);
+      updateView();
+    }
+
+    schoolYesBtn.addEventListener('click', () => handleSchoolChoice(true));
+    schoolNoBtn.addEventListener('click', () => handleSchoolChoice(false));
 
     function onMonthPassed() {
       if (state.isDead) return;
@@ -300,18 +430,21 @@
       state.feedLevel -= FEED_DECAY_PER_MONTH;
       if (state.feedLevel < 0) state.feedLevel = 0;
 
-      // Monthly income
-      const monthMult = monthIncomeMultiplier(state.years);
-      state.money += 1 * monthMult;
+      // Monthly income (base * knowledge)
+      const monthBase = monthIncomeBase(state.years);
+      state.money += Math.round(monthBase * knowledgeMultiplier());
 
       // Year rollover
       if (state.months >= MONTHS_PER_YEAR) {
         state.months -= MONTHS_PER_YEAR;
         state.years += 1;
 
-        // Yearly income
-        const yearMult = yearIncomeMultiplier(state.years);
-        state.money += 10 * yearMult;
+        // Yearly income (base * knowledge)
+        const yearBase = yearIncomeBase(state.years);
+        state.money += Math.round(yearBase * knowledgeMultiplier());
+
+        // Prompt school every year
+        maybePromptSchool(state.years);
 
         // Every 3 years → care check
         if (state.years % 3 === 0) {
@@ -331,7 +464,7 @@
       updateView();
     }
 
-    function feedPet() {
+    function feedJefferson() {
       if (state.isDead) return;
       if (state.money < FEED_COST) return;
 
@@ -345,14 +478,14 @@
       updateView();
     }
 
-    feedBtn.addEventListener('click', feedPet);
+    feedBtn.addEventListener('click', feedJefferson);
 
     // --- Countdown to next month ---
-
     let nextMonthRemainingMs = MS_PER_MONTH;
+
     function updateNextMonthTimer(deltaMs) {
       if (state.isDead) {
-        nextMonthTimerEl.textContent = 'Pet is dead';
+        nextMonthTimerEl.textContent = 'Jefferson is dead';
         return;
       }
       nextMonthRemainingMs -= deltaMs;
@@ -363,17 +496,17 @@
       nextMonthTimerEl.textContent = `Next month in: ${seconds}s`;
     }
 
-    // Use a real 1s interval for countdown; use another interval for month tick
+    // 1s countdown tick
     setInterval(() => {
       if (!state.isDead) {
         updateNextMonthTimer(1000);
       }
     }, 1000);
 
+    // Month tick
     setInterval(() => {
       if (!state.isDead) {
         onMonthPassed();
-        // reset countdown each month
         nextMonthRemainingMs = MS_PER_MONTH;
       }
     }, MS_PER_MONTH);
