@@ -8,14 +8,32 @@
       font-family: sans-serif;
       background:#111;
       color:white;
+      margin:0;
+    }
+
+    h1 {
       text-align:center;
+      margin-top:10px;
+    }
+
+    /* Layout: UI left, pet right */
+    #layout {
+      display:flex;
+      align-items:flex-start;
+      justify-content:center;
+      gap:40px;
+      margin-top:20px;
+    }
+
+    #uiColumn {
+      text-align:left;
+      max-width:260px;
     }
 
     #petWrapper {
       position:relative;
       width:256px;
       height:256px;
-      margin:20px auto;
     }
 
     #baseSprite,
@@ -37,11 +55,11 @@
       top:40%;
     }
 
-    /* Beard high on the face (adult + old), slightly left */
+    /* Beard high on the face (adult + old), more to the right */
     #beardOverlay {
       position:absolute;
       width:35%;
-      left:28%;
+      left:40%;  /* more to the right side */
       top:0%;
     }
 
@@ -51,68 +69,87 @@
     }
 
     #controls {
-      margin-top:20px;
+      margin-top:10px;
     }
 
     button {
-      margin:5px;
+      margin:5px 5px 0 0;
       padding:8px 12px;
       cursor:pointer;
     }
 
-    /* simple meter style */
+    /* feed meter bar */
     #feedMeterBar {
       width:200px;
       height:20px;
       border:1px solid #fff;
-      margin:5px auto;
+      margin:5px 0;
       background:#333;
       position:relative;
     }
     #feedMeterFill {
       height:100%;
       background:#4caf50;
-      width:100%; /* 0–100% based on feedLevel */
+      width:100%;
+    }
+
+    /* top-right timer for next month */
+    #nextMonthTimer {
+      position:fixed;
+      top:8px;
+      right:10px;
+      font-size:14px;
+      background:rgba(0,0,0,0.6);
+      padding:6px 10px;
+      border-radius:4px;
     }
   </style>
 </head>
 <body>
   <h1>Pet Life</h1>
 
-  <div id="status"></div>
+  <!-- Top-right countdown -->
+  <div id="nextMonthTimer">Next month in: 10s</div>
 
-  <div id="petWrapper">
-    <!-- base sprite -->
-    <img id="baseSprite"
-         src="https://i.ibb.co/nNqGSWWN/IMG-2528.png"
-         alt="pet" />
+  <div id="layout">
+    <!-- LEFT: UI -->
+    <div id="uiColumn">
+      <div id="status"></div>
 
-    <!-- baby diaper overlay -->
-    <img id="diaperOverlay" class="overlay"
-         src="https://png.pngtree.com/png-vector/20231214/ourmid/pngtree-diapers-flat-style-cartoon-free-buckle-hand-drawn-daily-necessities-png-image_11338185.png"
-         style="display:none;" />
+      <div id="info">
+        <div id="ageDisplay">Age: 0 years</div>
+        <div id="monthsDisplay">Months alive: 0</div>
+        <div id="moneyDisplay">Money: $0</div>
 
-    <!-- beard overlay (adult + old) -->
-    <img id="beardOverlay" class="overlay"
-         src="https://www.freepnglogos.com/uploads/beard-png/mustache-brown-beard-transparent-png-stickpng-1.png"
-         style="display:none;" />
-  </div>
+        <div>Feed meter:</div>
+        <div id="feedMeterBar">
+          <div id="feedMeterFill"></div>
+        </div>
+        <div id="feedText"></div>
+      </div>
 
-  <!-- Info panel -->
-  <div id="info">
-    <div id="ageDisplay">Age: 0 years</div>
-    <div id="monthsDisplay">Months alive: 0</div>
-    <div id="moneyDisplay">Money: $0</div>
-
-    <div>Feed meter:</div>
-    <div id="feedMeterBar">
-      <div id="feedMeterFill"></div>
+      <div id="controls">
+        <button id="feedBtn">Feed (-$10)</button>
+      </div>
     </div>
-    <div id="feedText"></div>
-  </div>
 
-  <div id="controls">
-    <button id="feedBtn">Feed (-$10)</button>
+    <!-- RIGHT: PET -->
+    <div id="petWrapper">
+      <!-- base sprite -->
+      <img id="baseSprite"
+           src="https://i.ibb.co/nNqGSWWN/IMG-2528.png"
+           alt="pet" />
+
+      <!-- baby diaper overlay -->
+      <img id="diaperOverlay" class="overlay"
+           src="https://png.pngtree.com/png-vector/20231214/ourmid/pngtree-diapers-flat-style-cartoon-free-buckle-hand-drawn-daily-necessities-png-image_11338185.png"
+           style="display:none;" />
+
+      <!-- beard overlay (adult + old) -->
+      <img id="beardOverlay" class="overlay"
+           src="https://www.freepnglogos.com/uploads/beard-png/mustache-brown-beard-transparent-png-stickpng-1.png"
+           style="display:none;" />
+    </div>
   </div>
 
   <script>
@@ -143,7 +180,7 @@
           stage: 'baby',
           isDead: false,
           money: 0,
-          feedLevel: MAX_FEED_LEVEL // start full
+          feedLevel: MAX_FEED_LEVEL
         };
       }
       try {
@@ -185,6 +222,8 @@
     const feedMeterFill = document.getElementById('feedMeterFill');
     const feedText      = document.getElementById('feedText');
     const feedBtn       = document.getElementById('feedBtn');
+
+    const nextMonthTimerEl = document.getElementById('nextMonthTimer');
 
     function computeStage(years) {
       if (years < STAGE_BABY_MAX) return 'baby';
@@ -249,7 +288,6 @@
 
     // Well taken care of at 3-year checks
     function isWellTakenCareOf(state) {
-      // If feed meter is too low, considered neglected
       return state.feedLevel >= MIN_SAFE_FEED_FOR_CHECK;
     }
 
@@ -309,9 +347,40 @@
 
     feedBtn.addEventListener('click', feedPet);
 
-    // Initial draw and start timer
+    // --- Countdown to next month ---
+
+    let nextMonthRemainingMs = MS_PER_MONTH;
+    function updateNextMonthTimer(deltaMs) {
+      if (state.isDead) {
+        nextMonthTimerEl.textContent = 'Pet is dead';
+        return;
+      }
+      nextMonthRemainingMs -= deltaMs;
+      if (nextMonthRemainingMs <= 0) {
+        nextMonthRemainingMs += MS_PER_MONTH;
+      }
+      const seconds = Math.ceil(nextMonthRemainingMs / 1000);
+      nextMonthTimerEl.textContent = `Next month in: ${seconds}s`;
+    }
+
+    // Use a real 1s interval for countdown; use another interval for month tick
+    setInterval(() => {
+      if (!state.isDead) {
+        updateNextMonthTimer(1000);
+      }
+    }, 1000);
+
+    setInterval(() => {
+      if (!state.isDead) {
+        onMonthPassed();
+        // reset countdown each month
+        nextMonthRemainingMs = MS_PER_MONTH;
+      }
+    }, MS_PER_MONTH);
+
+    // Initial draw
     updateView();
-    setInterval(onMonthPassed, MS_PER_MONTH);
+    nextMonthTimerEl.textContent = `Next month in: ${MS_PER_MONTH / 1000}s`;
   </script>
 </body>
 </html>
