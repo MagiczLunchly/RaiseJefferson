@@ -29,20 +29,24 @@
       pointer-events:none;
     }
 
-    /* Bigger diaper, moved up onto torso */
+    /* Wider diaper, higher on torso */
     #diaperOverlay {
       position:absolute;
-      width:70%;     /* bigger */
-      left:15%;      /* recenter */
-      top:48%;       /* move up toward torso */
+      width:110%;    /* wider than the body */
+      left:-5%;      /* recenter after making wider */
+      top:40%;       /* higher toward torso */
     }
 
-    /* Beard on face, used for adult + old */
+    /* Beard high on the face (adult + old) */
     #beardOverlay {
       position:absolute;
-      width:40%;     /* size of beard */
-      left:30%;      /* horizontal position on head */
-      top:32%;       /* vertical position (face) */
+      width:35%;     /* slightly narrower */
+      left:32%;      /* horizontal position */
+      top:20%;       /* much higher so it reaches face */
+    }
+
+    #controls {
+      margin-top:40px; /* pushes buttons further down */
     }
 
     button {
