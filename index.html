@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Pet Game</title>
+  <style>
+    body { font-family: sans-serif; background:#111; color:white; text-align:center; }
+    #petWrapper { position:relative; width:256px; height:256px; margin:20px auto; }
+
+    #baseSprite,
+    .overlay {
+      position:absolute;
+      top:0;
+      left:0;
+      width:100%;
+      height:100%;
+      object-fit:contain; /* keeps aspect ratio */
+      pointer-events:none;
+    }
+
+    /* Fine‑tune overlays to fit your base sprite */
+    #diaperOverlay {
+      width:55%;          /* adjust */
+      left:22%;           /* adjust */
+      top:55%;            /* adjust */
+    }
+
+    #beardOverlay {
+      width:45%;          /* adjust */
+      left:28%;           /* adjust */
+      top:42%;            /* adjust */
+    }
+
+    button { margin:5px; padding:8px 12px; }
+  </style>
+</head>
+<body>
+  <h1>Pet Life</h1>
+  <div id="status"></div>
+
+  <div id="petWrapper">
+    <!-- your main sprite -->
+    <img id="baseSprite"
+         src="https://i.ibb.co/nNqGSWWN/IMG-2528.png"
+         alt="pet" />
+
+    <!-- baby diaper overlay -->
+    <img id="diaperOverlay" class="overlay"
+         src="https://png.pngtree.com/png-vector/20231214/ourmid/pngtree-diapers-flat-style-cartoon-free-buckle-hand-drawn-daily-necessities-png-image_11338185.png"
+         style="display:none;" />
+
+    <!-- beard overlay (used for teen+adult+old as you requested) -->
+    <img id="beardOverlay" class="overlay"
+         src="https://www.freepnglogos.com/uploads/beard-png/mustache-brown-beard-transparent-png-stickpng-1.png"
+         style="display:none;" />
+  </div>
+
+  <div id="controls">
+    <button id="ageBtn">Age Up</button>
+    <button id="resetBtn">Hard Reset</button>
+  </div>
+
+  <script>
+    const SAVE_KEY = 'petSave';
+    const stages = ['baby', 'teen', 'adult', 'old', 'dead'];
+
+    function loadState() {
+      const raw = localStorage.getItem(SAVE_KEY);
+      if (!raw) return { stage: 'baby', isDead: false };
+      try {
+        const data = JSON.parse(raw);
+        if (!stages.includes(data.stage)) throw new Error();
+        return data;
+      } catch {
+        return { stage: 'baby', isDead: false };
+      }
+    }
+
+    function saveState(state) {
+      localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+    }
+
+    let state = loadState();
+
+    const statusEl = document.getElementById('status');
+    const diaperOverlay = document.getElementById('diaperOverlay');
+    const beardOverlay  = document.getElementById('beardOverlay');
+    const ageBtn   = document.getElementById('ageBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    function updateView() {
+      diaperOverlay.style.display = 'none';
+      beardOverlay.style.display  = 'none';
+
+      if (state.stage === 'baby') {
+        diaperOverlay.style.display = 'block';
+      } else if (state.stage === 'teen' ||
+                 state.stage === 'adult' ||
+                 state.stage === 'old') {
+        beardOverlay.style.display = 'block';
+      }
+
+      statusEl.textContent = `Stage: ${state.stage.toUpperCase()}`;
+      if (state.isDead) {
+        statusEl.textContent += ' (PERMANENTLY DEAD)';
+        ageBtn.disabled = true;
+      } else {
+        ageBtn.disabled = false;
+      }
+    }
+
+    function ageUp() {
+      if (state.isDead) return;
+      const idx = stages.indexOf(state.stage);
+      if (idx < stages.length - 1) {
+        state.stage = stages[idx + 1];
+      }
+      if (state.stage === 'dead') {
+        state.isDead = true;
+      }
+      saveState(state);
+      updateView();
+    }
+
+    ageBtn.addEventListener('click', ageUp);
+
+    resetBtn.addEventListener('click', () => {
+      if (!confirm('Wipe your pet and start a new one?')) return;
+      localStorage.removeItem(SAVE_KEY);
+      state = { stage: 'baby', isDead: false };
+      saveState(state);
+      updateView();
+    });
+
+    updateView();
+  </script>
+</body>
+</html>
