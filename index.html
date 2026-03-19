@@ -16,7 +16,6 @@
       margin-top:10px;
     }
 
-    /* Layout: UI left, Jefferson right */
     #layout {
       display:flex;
       align-items:flex-start;
@@ -47,7 +46,6 @@
       pointer-events:none;
     }
 
-    /* Wider diaper, higher on torso */
     #diaperOverlay {
       position:absolute;
       width:110%;
@@ -55,7 +53,6 @@
       top:40%;
     }
 
-    /* Beard high on the face (adult + old), more to the right */
     #beardOverlay {
       position:absolute;
       width:35%;
@@ -78,7 +75,6 @@
       cursor:pointer;
     }
 
-    /* feed meter bar */
     #feedMeterBar {
       width:200px;
       height:20px;
@@ -93,7 +89,6 @@
       width:100%;
     }
 
-    /* knowledge meter bar */
     #knowledgeMeterBar {
       width:200px;
       height:20px;
@@ -108,7 +103,6 @@
       width:0%;
     }
 
-    /* top-right timer for next month */
     #nextMonthTimer {
       position:fixed;
       top:8px;
@@ -119,7 +113,6 @@
       border-radius:4px;
     }
 
-    /* full-screen school prompt */
     #schoolPromptOverlay {
       position:fixed;
       inset:0;
@@ -141,7 +134,6 @@
       margin-top:10px;
     }
 
-    /* Gambling menu */
     #gamblingPanel {
       margin-top:15px;
       padding:10px;
@@ -163,20 +155,29 @@
       min-height:18px;
       font-size:13px;
     }
+
+    #restartBtn {
+      display:none;
+      padding:8px 12px;
+      cursor:pointer;
+      background:#8b0000;
+      color:white;
+      border:1px solid #ff4444;
+      margin-top:10px;
+    }
+    #restartBtn:hover {
+      background:#aa0000;
+    }
   </style>
 </head>
 <body>
   <h1>Raise a Jefferson</h1>
 
-  <!-- Top-right countdown -->
   <div id="nextMonthTimer">Next month in: 10s</div>
 
-  <!-- Yearly school prompt overlay -->
   <div id="schoolPromptOverlay">
     <div id="schoolPromptBox">
-      <div id="schoolPromptText">
-        NEW YEAR🎉 — Send Jefferson to school this year?
-      </div>
+      <div id="schoolPromptText">NEW YEAR🎉 — Send Jefferson to school this year?</div>
       <div style="margin-top:8px;">
         <button id="schoolYesBtn">Yes, send to school</button>
         <button id="schoolNoBtn">No</button>
@@ -185,7 +186,6 @@
   </div>
 
   <div id="layout">
-    <!-- LEFT: UI -->
     <div id="uiColumn">
       <div id="status"></div>
 
@@ -195,15 +195,11 @@
         <div id="moneyDisplay">Money: $0</div>
 
         <div>Feed meter:</div>
-        <div id="feedMeterBar">
-          <div id="feedMeterFill"></div>
-        </div>
+        <div id="feedMeterBar"><div id="feedMeterFill"></div></div>
         <div id="feedText"></div>
 
         <div style="margin-top:8px;">Knowledge meter:</div>
-        <div id="knowledgeMeterBar">
-          <div id="knowledgeMeterFill"></div>
-        </div>
+        <div id="knowledgeMeterBar"><div id="knowledgeMeterFill"></div></div>
         <div id="knowledgeText"></div>
       </div>
 
@@ -211,9 +207,10 @@
         <button id="feedBtn">Feed Jefferson (-$10)</button>
         <button id="upgradeBtn">Faster Years Upgrade (-$1000)</button>
         <button id="gamblingToggleBtn">Gambling (Unlocks at age 18)</button>
+        <br>
+        <button id="restartBtn">🔄 Restart Game</button>
       </div>
 
-      <!-- Gambling menu -->
       <div id="gamblingPanel">
         <div><strong>Gambling</strong> (Hard to win, but possible)</div>
         <div>Bet amount:</div>
@@ -224,19 +221,11 @@
       </div>
     </div>
 
-    <!-- RIGHT: JEFFERSON -->
     <div id="petWrapper">
-      <!-- base sprite -->
-      <img id="baseSprite"
-           src="https://i.ibb.co/nNqGSWWN/IMG-2528.png"
-           alt="Jefferson" />
-
-      <!-- baby diaper overlay -->
+      <img id="baseSprite" src="https://i.ibb.co/nNqGSWWN/IMG-2528.png" alt="Jefferson" />
       <img id="diaperOverlay" class="overlay"
            src="https://png.pngtree.com/png-vector/20231214/ourmid/pngtree-diapers-flat-style-cartoon-free-buckle-hand-drawn-daily-necessities-png-image_11338185.png"
            style="display:none;" />
-
-      <!-- beard overlay (adult + old) -->
       <img id="beardOverlay" class="overlay"
            src="https://www.freepnglogos.com/uploads/beard-png/mustache-brown-beard-transparent-png-stickpng-1.png"
            style="display:none;" />
@@ -246,427 +235,249 @@
   <script>
     const SAVE_KEY = 'petSave';
 
-    // Stage thresholds in years
-    const STAGE_BABY_MAX  = 10;  // <10
-    const STAGE_TEEN_MAX  = 20;  // <20
-    const STAGE_ADULT_MAX = 60;  // <60
+    const STAGE_BABY_MAX  = 10;
+    const STAGE_TEEN_MAX  = 20;
+    const STAGE_ADULT_MAX = 60;
 
-    // Base time constants
-    const BASE_MS_PER_MONTH = 10_000; // 10 seconds per month
-    const FAST_MS_PER_MONTH = 8_000;  // faster after upgrade
+    const BASE_MS_PER_MONTH = 10_000;
+    const FAST_MS_PER_MONTH = 8_000;
     const MONTHS_PER_YEAR   = 12;
 
-    // Feed meter constants
-    const MAX_FEED_LEVEL       = 100; // 0–100
-    const BASE_FEED_AMOUNT     = 40;
-    const UPGRADED_FEED_AMOUNT = 45;
-    const BASE_FEED_COST       = 10;
-    const UPGRADED_FEED_COST   = 8;
-    const FEED_DECAY_PER_MONTH = 5;
+    const MAX_FEED_LEVEL          = 100;
+    const BASE_FEED_AMOUNT        = 40;
+    const UPGRADED_FEED_AMOUNT    = 45;
+    const BASE_FEED_COST          = 10;
+    const UPGRADED_FEED_COST      = 8;
+    const FEED_DECAY_PER_MONTH    = 5;
     const MIN_SAFE_FEED_FOR_CHECK = 20;
 
-    // Knowledge constants
     const MAX_KNOWLEDGE             = 100;
     const BASE_SCHOOL_COST          = 100;
     const UPGRADED_SCHOOL_COST      = 80;
     const KNOWLEDGE_GAIN_PER_SCHOOL = 10;
+    const YEAR_UPGRADE_COST         = 1000;
 
-    // Year upgrade
-    const YEAR_UPGRADE_COST = 1000;
+    function freshState() {
+      return { years:0, months:0, stage:'baby', isDead:false, money:0,
+               feedLevel:MAX_FEED_LEVEL, knowledge:0, hasYearUpgrade:false };
+    }
 
     function loadState() {
       const raw = localStorage.getItem(SAVE_KEY);
-      if (!raw) {
-        return {
-          years: 0,
-          months: 0,
-          stage: 'baby',
-          isDead: false,
-          money: 0,
-          feedLevel: MAX_FEED_LEVEL,
-          knowledge: 0,
-          hasYearUpgrade: false
-        };
-      }
-      try {
-        const data = JSON.parse(raw);
-        return Object.assign({
-          years: 0,
-          months: 0,
-          stage: 'baby',
-          isDead: false,
-          money: 0,
-          feedLevel: MAX_FEED_LEVEL,
-          knowledge: 0,
-          hasYearUpgrade: false
-        }, data);
-      } catch {
-        return {
-          years: 0,
-          months: 0,
-          stage: 'baby',
-          isDead: false,
-          money: 0,
-          feedLevel: MAX_FEED_LEVEL,
-          knowledge: 0,
-          hasYearUpgrade: false
-        };
-      }
+      if (!raw) return freshState();
+      try { return Object.assign(freshState(), JSON.parse(raw)); }
+      catch { return freshState(); }
     }
 
-    function saveState(state) {
-      localStorage.setItem(SAVE_KEY, JSON.stringify(state));
-    }
+    function saveState(s) { localStorage.setItem(SAVE_KEY, JSON.stringify(s)); }
 
     let state = loadState();
 
-    const statusEl      = document.getElementById('status');
-    const diaperOverlay = document.getElementById('diaperOverlay');
-    const beardOverlay  = document.getElementById('beardOverlay');
-
-    const ageDisplay    = document.getElementById('ageDisplay');
-    const monthsDisplay = document.getElementById('monthsDisplay');
-    const moneyDisplay  = document.getElementById('moneyDisplay');
-
-    const feedMeterFill = document.getElementById('feedMeterFill');
-    const feedText      = document.getElementById('feedText');
-    const feedBtn       = document.getElementById('feedBtn');
-
-    const knowledgeMeterFill = document.getElementById('knowledgeMeterFill');
-    const knowledgeText      = document.getElementById('knowledgeText');
-
-    const nextMonthTimerEl   = document.getElementById('nextMonthTimer');
-
+    const statusEl            = document.getElementById('status');
+    const diaperOverlay       = document.getElementById('diaperOverlay');
+    const beardOverlay        = document.getElementById('beardOverlay');
+    const ageDisplay          = document.getElementById('ageDisplay');
+    const monthsDisplay       = document.getElementById('monthsDisplay');
+    const moneyDisplay        = document.getElementById('moneyDisplay');
+    const feedMeterFill       = document.getElementById('feedMeterFill');
+    const feedText            = document.getElementById('feedText');
+    const feedBtn             = document.getElementById('feedBtn');
+    const knowledgeMeterFill  = document.getElementById('knowledgeMeterFill');
+    const knowledgeText       = document.getElementById('knowledgeText');
+    const nextMonthTimerEl    = document.getElementById('nextMonthTimer');
     const schoolPromptOverlay = document.getElementById('schoolPromptOverlay');
     const schoolPromptText    = document.getElementById('schoolPromptText');
     const schoolYesBtn        = document.getElementById('schoolYesBtn');
     const schoolNoBtn         = document.getElementById('schoolNoBtn');
-
     const upgradeBtn          = document.getElementById('upgradeBtn');
-
     const gamblingToggleBtn   = document.getElementById('gamblingToggleBtn');
     const gamblingPanel       = document.getElementById('gamblingPanel');
     const gamblingBetInput    = document.getElementById('gamblingBet');
     const gamblingMessage     = document.getElementById('gamblingMessage');
     const gambleBtn           = document.getElementById('gambleBtn');
+    const restartBtn          = document.getElementById('restartBtn');
 
     let waitingForSchoolChoice = false;
-    let pendingSchoolYear      = null;
+    let monthIntervalId        = null;
+    let countdownIntervalId    = null;
+    let currentMsPerMonth      = state.hasYearUpgrade ? FAST_MS_PER_MONTH : BASE_MS_PER_MONTH;
+    let nextMonthRemainingMs   = currentMsPerMonth;
 
-    // dynamic timers
-    let monthIntervalId = null;
-    let countdownIntervalId = null;
-    let currentMsPerMonth = state.hasYearUpgrade ? FAST_MS_PER_MONTH : BASE_MS_PER_MONTH;
-    let nextMonthRemainingMs = currentMsPerMonth;
-
-    function computeStage(years) {
-      if (years < STAGE_BABY_MAX) return 'baby';
-      if (years < STAGE_TEEN_MAX) return 'teen';
-      if (years < STAGE_ADULT_MAX) return 'adult';
+    function computeStage(y) {
+      if (y < STAGE_BABY_MAX)  return 'baby';
+      if (y < STAGE_TEEN_MAX)  return 'teen';
+      if (y < STAGE_ADULT_MAX) return 'adult';
       return 'old';
     }
 
-    function knowledgeMultiplier() {
-      // 0 knowledge = 1x, 100 knowledge = 2x
-      return 1 + (state.knowledge / MAX_KNOWLEDGE);
-    }
-
-    function currentFeedCost() {
-      return state.hasYearUpgrade ? UPGRADED_FEED_COST : BASE_FEED_COST;
-    }
-
-    function currentFeedAmount() {
-      return state.hasYearUpgrade ? UPGRADED_FEED_AMOUNT : BASE_FEED_AMOUNT;
-    }
-
-    function currentSchoolCost() {
-      return state.hasYearUpgrade ? UPGRADED_SCHOOL_COST : BASE_SCHOOL_COST;
-    }
+    function knowledgeMultiplier() { return 1 + (state.knowledge / MAX_KNOWLEDGE); }
+    function currentFeedCost()   { return state.hasYearUpgrade ? UPGRADED_FEED_COST   : BASE_FEED_COST; }
+    function currentFeedAmount() { return state.hasYearUpgrade ? UPGRADED_FEED_AMOUNT : BASE_FEED_AMOUNT; }
+    function currentSchoolCost() { return state.hasYearUpgrade ? UPGRADED_SCHOOL_COST : BASE_SCHOOL_COST; }
 
     function updateView() {
-      // overlays
       diaperOverlay.style.display = 'none';
       beardOverlay.style.display  = 'none';
-
       if (!state.isDead) {
-        if (state.stage === 'baby') {
-          diaperOverlay.style.display = 'block';
-        } else if (state.stage === 'adult' || state.stage === 'old') {
-          beardOverlay.style.display = 'block';
-        }
+        if (state.stage === 'baby') diaperOverlay.style.display = 'block';
+        else if (state.stage === 'adult' || state.stage === 'old') beardOverlay.style.display = 'block';
       }
 
       statusEl.textContent = state.isDead
-        ? `Stage: DEAD (PERMANENTLY)`
+        ? 'Stage: DEAD (PERMANENTLY)'
         : `Stage: ${state.stage.toUpperCase()} — Raise a Jefferson`;
 
       ageDisplay.textContent    = `Age: ${state.years} years`;
       monthsDisplay.textContent = `Months alive: ${state.months}`;
       moneyDisplay.textContent  = `Money: $${state.money}`;
 
-      // feed meter
-      const clampedFeed = Math.max(0, Math.min(MAX_FEED_LEVEL, state.feedLevel));
-      const feedPct = (clampedFeed / MAX_FEED_LEVEL) * 100;
+      const feedPct = (Math.max(0, Math.min(MAX_FEED_LEVEL, state.feedLevel)) / MAX_FEED_LEVEL) * 100;
       feedMeterFill.style.width = feedPct + '%';
-
-      if (clampedFeed > 70) {
-        feedText.textContent = 'Well fed';
-      } else if (clampedFeed > 40) {
-        feedText.textContent = 'Hungry';
-      } else if (clampedFeed > 10) {
-        feedText.textContent = 'Very hungry';
-      } else {
-        feedText.textContent = 'Starving! Feed Jefferson soon or risk death.';
-      }
+      if      (state.feedLevel > 70) feedText.textContent = 'Well fed';
+      else if (state.feedLevel > 40) feedText.textContent = 'Hungry';
+      else if (state.feedLevel > 10) feedText.textContent = 'Very hungry';
+      else                           feedText.textContent = 'Starving! Feed Jefferson soon or risk death.';
 
       feedBtn.textContent = `Feed Jefferson (-$${currentFeedCost()})`;
       feedBtn.disabled = state.isDead || state.money < currentFeedCost();
 
-      // knowledge meter
-      const clampedKnow = Math.max(0, Math.min(MAX_KNOWLEDGE, state.knowledge));
-      const knowPct = (clampedKnow / MAX_KNOWLEDGE) * 100;
+      const knowPct = (Math.max(0, Math.min(MAX_KNOWLEDGE, state.knowledge)) / MAX_KNOWLEDGE) * 100;
       knowledgeMeterFill.style.width = knowPct + '%';
+      if      (state.knowledge === 0) knowledgeText.textContent = 'Knowledge: none';
+      else if (state.knowledge < 30)  knowledgeText.textContent = 'Knowledge: low';
+      else if (state.knowledge < 70)  knowledgeText.textContent = 'Knowledge: educated';
+      else                            knowledgeText.textContent = 'Knowledge: very smart';
 
-      if (clampedKnow === 0) {
-        knowledgeText.textContent = 'Knowledge: none';
-      } else if (clampedKnow < 30) {
-        knowledgeText.textContent = 'Knowledge: low';
-      } else if (clampedKnow < 70) {
-        knowledgeText.textContent = 'Knowledge: educated';
-      } else {
-        knowledgeText.textContent = 'Knowledge: very smart';
-      }
-
-      // upgrade button
-      if (state.isDead || state.hasYearUpgrade) {
-        upgradeBtn.style.display = 'none';
-      } else {
-        upgradeBtn.style.display = 'inline-block';
+      upgradeBtn.style.display = (state.isDead || state.hasYearUpgrade) ? 'none' : 'inline-block';
+      if (!state.isDead && !state.hasYearUpgrade) {
         upgradeBtn.disabled = state.money < YEAR_UPGRADE_COST;
         upgradeBtn.textContent = `Faster Years Upgrade (-$${YEAR_UPGRADE_COST})`;
       }
 
-      // gambling button text is static, but we disable before 18
       const canGamble = !state.isDead && state.years >= 18;
       gamblingToggleBtn.disabled = !canGamble;
-      if (!canGamble) {
-        gamblingPanel.style.display = 'none';
-      }
+      if (!canGamble) gamblingPanel.style.display = 'none';
+
+      // Restart button only visible when dead
+      restartBtn.style.display = state.isDead ? 'inline-block' : 'none';
     }
 
-    // Money scaling: includes knowledge multiplier
-    function monthIncomeBase(years) {
-      if (years < 10) return 1;
-      if (years < 20) return 2;
-      if (years < 60) return 3;
-      return 4;
+    function monthIncomeBase(y) {
+      if (y < 10) return 1; if (y < 20) return 2; if (y < 60) return 3; return 4;
+    }
+    function yearIncomeBase(y) {
+      if (y < 10) return 10; if (y < 20) return 15; if (y < 60) return 20; return 25;
     }
 
-    function yearIncomeBase(years) {
-      if (years < 10) return 10;
-      if (years < 20) return 15;
-      if (years < 60) return 20;
-      return 25;
-    }
-
-    function isWellTakenCareOf(state) {
-      return state.feedLevel >= MIN_SAFE_FEED_FOR_CHECK;
-    }
-
-    function maybePromptSchool(yearJustReached) {
-      if (state.isDead) return;
-      if (waitingForSchoolChoice) return;
-
+    function maybePromptSchool(yr) {
+      if (state.isDead || waitingForSchoolChoice) return;
       waitingForSchoolChoice = true;
-      pendingSchoolYear = yearJustReached;
-
       const cost = currentSchoolCost();
-      const text = `NEW YEAR🎉\n\nJefferson is now ${yearJustReached} years old.\nSend Jefferson to school this year for $${cost}?`;
-      schoolPromptText.textContent = text;
+      schoolPromptText.textContent =
+        `NEW YEAR🎉\n\nJefferson is now ${yr} years old.\nSend Jefferson to school this year for $${cost}?`;
       schoolPromptOverlay.style.display = 'flex';
     }
 
-    function handleSchoolChoice(goToSchool) {
+    function handleSchoolChoice(go) {
       if (!waitingForSchoolChoice) return;
       waitingForSchoolChoice = false;
       schoolPromptOverlay.style.display = 'none';
-
-      if (goToSchool && !state.isDead) {
+      if (go && !state.isDead) {
         const cost = currentSchoolCost();
         if (state.money >= cost) {
           state.money -= cost;
-          state.knowledge += KNOWLEDGE_GAIN_PER_SCHOOL;
-          if (state.knowledge > MAX_KNOWLEDGE) {
-            state.knowledge = MAX_KNOWLEDGE;
-          }
+          state.knowledge = Math.min(MAX_KNOWLEDGE, state.knowledge + KNOWLEDGE_GAIN_PER_SCHOOL);
         }
       }
-
-      saveState(state);
-      updateView();
+      saveState(state); updateView();
     }
 
     schoolYesBtn.addEventListener('click', () => handleSchoolChoice(true));
-    schoolNoBtn.addEventListener('click', () => handleSchoolChoice(false));
+    schoolNoBtn.addEventListener('click',  () => handleSchoolChoice(false));
 
     function onMonthPassed() {
       if (state.isDead) return;
-
       state.months += 1;
+      state.feedLevel = Math.max(0, state.feedLevel - FEED_DECAY_PER_MONTH);
+      state.money += Math.round(monthIncomeBase(state.years) * knowledgeMultiplier());
 
-      // Feed meter decays every month
-      state.feedLevel -= FEED_DECAY_PER_MONTH;
-      if (state.feedLevel < 0) state.feedLevel = 0;
-
-      // Monthly income (base * knowledge)
-      const monthBase = monthIncomeBase(state.years);
-      state.money += Math.round(monthBase * knowledgeMultiplier());
-
-      // Year rollover
       if (state.months >= MONTHS_PER_YEAR) {
         state.months -= MONTHS_PER_YEAR;
         state.years += 1;
-
-        // Yearly income (base * knowledge)
-        const yearBase = yearIncomeBase(state.years);
-        state.money += Math.round(yearBase * knowledgeMultiplier());
-
-        // Prompt school every year
+        state.money += Math.round(yearIncomeBase(state.years) * knowledgeMultiplier());
         maybePromptSchool(state.years);
-
-        // Every 3 years → care check
-        if (state.years % 3 === 0) {
-          if (!isWellTakenCareOf(state)) {
-            state.isDead = true;
-            state.stage = 'dead';
-          }
+        if (state.years % 3 === 0 && state.feedLevel < MIN_SAFE_FEED_FOR_CHECK) {
+          state.isDead = true;
+          state.stage = 'dead';
         }
       }
 
-      // Stage update
-      if (!state.isDead) {
-        state.stage = computeStage(state.years);
-      }
-
-      saveState(state);
-      updateView();
+      if (!state.isDead) state.stage = computeStage(state.years);
+      saveState(state); updateView();
     }
 
-    function feedJefferson() {
+    feedBtn.addEventListener('click', () => {
       if (state.isDead) return;
       const cost = currentFeedCost();
       if (state.money < cost) return;
-
       state.money -= cost;
-      state.feedLevel += currentFeedAmount();
-      if (state.feedLevel > MAX_FEED_LEVEL) {
-        state.feedLevel = MAX_FEED_LEVEL;
-      }
+      state.feedLevel = Math.min(MAX_FEED_LEVEL, state.feedLevel + currentFeedAmount());
+      saveState(state); updateView();
+    });
 
-      saveState(state);
-      updateView();
-    }
-
-    feedBtn.addEventListener('click', feedJefferson);
-
-    function buyYearUpgrade() {
-      if (state.isDead) return;
-      if (state.hasYearUpgrade) return;
-      if (state.money < YEAR_UPGRADE_COST) return;
-
+    upgradeBtn.addEventListener('click', () => {
+      if (state.isDead || state.hasYearUpgrade || state.money < YEAR_UPGRADE_COST) return;
       state.money -= YEAR_UPGRADE_COST;
       state.hasYearUpgrade = true;
-
-      // apply faster months
       currentMsPerMonth = FAST_MS_PER_MONTH;
-      resetTimers();
+      resetTimers(); saveState(state); updateView();
+    });
 
-      saveState(state);
-      updateView();
-    }
-
-    upgradeBtn.addEventListener('click', buyYearUpgrade);
-
-    // Gambling logic
-    function toggleGamblingPanel() {
+    gamblingToggleBtn.addEventListener('click', () => {
       if (state.isDead || state.years < 18) return;
-      if (gamblingPanel.style.display === 'none' || gamblingPanel.style.display === '') {
-        gamblingPanel.style.display = 'block';
-        gamblingMessage.textContent = '';
-      } else {
-        gamblingPanel.style.display = 'none';
-      }
-    }
+      gamblingPanel.style.display = gamblingPanel.style.display === 'block' ? 'none' : 'block';
+      gamblingMessage.textContent = '';
+    });
 
-    gamblingToggleBtn.addEventListener('click', toggleGamblingPanel);
-
-    function doGamble() {
-      if (state.isDead) {
-        gamblingMessage.textContent = 'Jefferson is dead. No more gambling.';
-        return;
-      }
-      if (state.years < 18) {
-        gamblingMessage.textContent = 'You must be at least 18 to gamble.';
-        return;
-      }
-
+    gambleBtn.addEventListener('click', () => {
+      if (state.isDead) { gamblingMessage.textContent = 'Jefferson is dead.'; return; }
+      if (state.years < 18) { gamblingMessage.textContent = 'Must be 18 to gamble.'; return; }
       const bet = parseInt(gamblingBetInput.value, 10);
-      if (isNaN(bet) || bet <= 0) {
-        gamblingMessage.textContent = 'Enter a valid bet amount.';
-        return;
-      }
-      if (bet > state.money) {
-        gamblingMessage.textContent = 'You do not have enough money for that bet.';
-        return;
-      }
-
-      // Hard to win: 30% win, 70% lose
-      const roll = Math.random(); // 0–1
-      state.money -= bet; // first take the bet
-
-      if (roll < 0.3) {
-        // win 2x (profit = +bet)
-        const winnings = bet * 2;
-        state.money += winnings;
-        gamblingMessage.textContent = `You WON! Jefferson earned $${winnings}.`;
+      if (isNaN(bet) || bet <= 0) { gamblingMessage.textContent = 'Enter a valid bet.'; return; }
+      if (bet > state.money) { gamblingMessage.textContent = 'Not enough money.'; return; }
+      state.money -= bet;
+      if (Math.random() < 0.3) {
+        state.money += bet * 2;
+        gamblingMessage.textContent = `You WON! Jefferson earned $${bet * 2}.`;
       } else {
-        // lose bet
         gamblingMessage.textContent = `You lost $${bet}. Better luck next time.`;
       }
+      saveState(state); updateView();
+    });
 
+    // Restart — only shown when dead
+    restartBtn.addEventListener('click', () => {
+      state = freshState();
       saveState(state);
+      currentMsPerMonth = BASE_MS_PER_MONTH;
+      waitingForSchoolChoice = false;
+      schoolPromptOverlay.style.display = 'none';
+      gamblingPanel.style.display = 'none';
+      resetTimers();
       updateView();
-    }
-
-    gambleBtn.addEventListener('click', doGamble);
-
-    // --- Countdown to next month and timers ---
-    function updateNextMonthTimer(deltaMs) {
-      if (state.isDead) {
-        nextMonthTimerEl.textContent = 'Jefferson is dead';
-        return;
-      }
-      nextMonthRemainingMs -= deltaMs;
-      if (nextMonthRemainingMs <= 0) {
-        nextMonthRemainingMs += currentMsPerMonth;
-      }
-      const seconds = Math.ceil(nextMonthRemainingMs / 1000);
-      nextMonthTimerEl.textContent = `Next month in: ${seconds}s`;
-    }
+    });
 
     function startTimers() {
       nextMonthRemainingMs = currentMsPerMonth;
       countdownIntervalId = setInterval(() => {
         if (!state.isDead) {
-          updateNextMonthTimer(1000);
+          nextMonthRemainingMs -= 1000;
+          if (nextMonthRemainingMs <= 0) nextMonthRemainingMs = currentMsPerMonth;
+          nextMonthTimerEl.textContent = `Next month in: ${Math.ceil(nextMonthRemainingMs / 1000)}s`;
         }
       }, 1000);
-
       monthIntervalId = setInterval(() => {
-        if (!state.isDead) {
-          onMonthPassed();
-          nextMonthRemainingMs = currentMsPerMonth;
-        }
+        if (!state.isDead) { onMonthPassed(); nextMonthRemainingMs = currentMsPerMonth; }
       }, currentMsPerMonth);
     }
 
@@ -676,7 +487,6 @@
       startTimers();
     }
 
-    // Initial draw and timers
     updateView();
     startTimers();
     nextMonthTimerEl.textContent = `Next month in: ${currentMsPerMonth / 1000}s`;
