@@ -13,7 +13,7 @@
 
     #petWrapper {
       position:relative;
-      width:256px;   /* adjust if you want bigger/smaller */
+      width:256px;
       height:256px;
       margin:20px auto;
     }
@@ -32,27 +32,47 @@
     /* Wider diaper, higher on torso */
     #diaperOverlay {
       position:absolute;
-      width:110%;    /* wider than the body */
-      left:-5%;      /* recenter after making wider */
-      top:40%;       /* higher toward torso */
+      width:110%;
+      left:-5%;
+      top:40%;
     }
 
-    /* Beard high on the face (adult + old) */
+    /* Beard high on the face (adult + old), slightly left */
     #beardOverlay {
       position:absolute;
-      width:35%;     /* slightly narrower */
-      left:32%;      /* horizontal position */
-      top:0%;       /* much higher so it reaches face */
+      width:35%;
+      left:28%;
+      top:0%;
+    }
+
+    #info {
+      margin-top:10px;
+      line-height:1.6;
     }
 
     #controls {
-      margin-top:40px; /* pushes buttons further down */
+      margin-top:20px;
     }
 
     button {
       margin:5px;
       padding:8px 12px;
       cursor:pointer;
+    }
+
+    /* simple meter style */
+    #feedMeterBar {
+      width:200px;
+      height:20px;
+      border:1px solid #fff;
+      margin:5px auto;
+      background:#333;
+      position:relative;
+    }
+    #feedMeterFill {
+      height:100%;
+      background:#4caf50;
+      width:100%; /* 0–100% based on feedLevel */
     }
   </style>
 </head>
@@ -78,25 +98,73 @@
          style="display:none;" />
   </div>
 
+  <!-- Info panel -->
+  <div id="info">
+    <div id="ageDisplay">Age: 0 years</div>
+    <div id="monthsDisplay">Months alive: 0</div>
+    <div id="moneyDisplay">Money: $0</div>
+
+    <div>Feed meter:</div>
+    <div id="feedMeterBar">
+      <div id="feedMeterFill"></div>
+    </div>
+    <div id="feedText"></div>
+  </div>
+
   <div id="controls">
-    <button id="ageBtn">Age Up</button>
-    <button id="resetBtn">Hard Reset</button>
+    <button id="feedBtn">Feed (-$10)</button>
   </div>
 
   <script>
-    // Save key and stages
     const SAVE_KEY = 'petSave';
-    const stages = ['baby', 'teen', 'adult', 'old', 'dead'];
+
+    // Stage thresholds in years
+    const STAGE_BABY_MAX  = 10;  // <10
+    const STAGE_TEEN_MAX  = 20;  // <20
+    const STAGE_ADULT_MAX = 60;  // <60
+
+    // Time constants
+    const MS_PER_MONTH = 10_000; // 10 seconds per month
+    const MONTHS_PER_YEAR = 12;
+
+    // Feed meter constants
+    const MAX_FEED_LEVEL = 100;     // 0–100
+    const FEED_AMOUNT    = 40;      // feed button adds this
+    const FEED_DECAY_PER_MONTH = 5; // how much it drops every month
+    const FEED_COST = 10;           // dollars per feed
+    const MIN_SAFE_FEED_FOR_CHECK = 20; // if below at 3-year check → die
 
     function loadState() {
       const raw = localStorage.getItem(SAVE_KEY);
-      if (!raw) return { stage: 'baby', isDead: false };
+      if (!raw) {
+        return {
+          years: 0,
+          months: 0,
+          stage: 'baby',
+          isDead: false,
+          money: 0,
+          feedLevel: MAX_FEED_LEVEL // start full
+        };
+      }
       try {
         const data = JSON.parse(raw);
-        if (!stages.includes(data.stage)) throw new Error();
-        return data;
+        return Object.assign({
+          years: 0,
+          months: 0,
+          stage: 'baby',
+          isDead: false,
+          money: 0,
+          feedLevel: MAX_FEED_LEVEL
+        }, data);
       } catch {
-        return { stage: 'baby', isDead: false };
+        return {
+          years: 0,
+          months: 0,
+          stage: 'baby',
+          isDead: false,
+          money: 0,
+          feedLevel: MAX_FEED_LEVEL
+        };
       }
     }
 
@@ -109,62 +177,141 @@
     const statusEl      = document.getElementById('status');
     const diaperOverlay = document.getElementById('diaperOverlay');
     const beardOverlay  = document.getElementById('beardOverlay');
-    const ageBtn        = document.getElementById('ageBtn');
-    const resetBtn      = document.getElementById('resetBtn');
+
+    const ageDisplay    = document.getElementById('ageDisplay');
+    const monthsDisplay = document.getElementById('monthsDisplay');
+    const moneyDisplay  = document.getElementById('moneyDisplay');
+
+    const feedMeterFill = document.getElementById('feedMeterFill');
+    const feedText      = document.getElementById('feedText');
+    const feedBtn       = document.getElementById('feedBtn');
+
+    function computeStage(years) {
+      if (years < STAGE_BABY_MAX) return 'baby';
+      if (years < STAGE_TEEN_MAX) return 'teen';
+      if (years < STAGE_ADULT_MAX) return 'adult';
+      return 'old';
+    }
 
     function updateView() {
-      // hide all overlays first
+      // overlays
       diaperOverlay.style.display = 'none';
       beardOverlay.style.display  = 'none';
 
-      // overlay rules:
-      // baby  -> diaper
-      // teen  -> nothing
-      // adult -> beard
-      // old   -> beard
-      // dead  -> nothing
-      if (state.stage === 'baby') {
-        diaperOverlay.style.display = 'block';
-      } else if (state.stage === 'adult' || state.stage === 'old') {
-        beardOverlay.style.display = 'block';
+      if (!state.isDead) {
+        if (state.stage === 'baby') {
+          diaperOverlay.style.display = 'block';
+        } else if (state.stage === 'adult' || state.stage === 'old') {
+          beardOverlay.style.display = 'block';
+        }
       }
 
-      statusEl.textContent = `Stage: ${state.stage.toUpperCase()}`;
-      if (state.isDead) {
-        statusEl.textContent += ' (PERMANENTLY DEAD)';
-        ageBtn.disabled = true;
+      statusEl.textContent = state.isDead
+        ? `Stage: DEAD (PERMANENTLY)`
+        : `Stage: ${state.stage.toUpperCase()}`;
+
+      ageDisplay.textContent    = `Age: ${state.years} years`;
+      monthsDisplay.textContent = `Months alive: ${state.months}`;
+      moneyDisplay.textContent  = `Money: $${state.money}`;
+
+      // feed meter
+      const clamped = Math.max(0, Math.min(MAX_FEED_LEVEL, state.feedLevel));
+      const pct = (clamped / MAX_FEED_LEVEL) * 100;
+      feedMeterFill.style.width = pct + '%';
+
+      if (clamped > 70) {
+        feedText.textContent = 'Well fed';
+      } else if (clamped > 40) {
+        feedText.textContent = 'Hungry';
+      } else if (clamped > 10) {
+        feedText.textContent = 'Very hungry';
       } else {
-        ageBtn.disabled = false;
+        feedText.textContent = 'Starving! Feed soon or risk death.';
       }
+
+      feedBtn.disabled = state.isDead || state.money < FEED_COST;
     }
 
-    function ageUp() {
+    // Money scaling
+    function monthIncomeMultiplier(years) {
+      if (years < 10) return 1;
+      if (years < 20) return 2;
+      if (years < 60) return 3;
+      return 4;
+    }
+
+    function yearIncomeMultiplier(years) {
+      if (years < 10) return 1;
+      if (years < 20) return 2;
+      if (years < 60) return 3;
+      return 4;
+    }
+
+    // Well taken care of at 3-year checks
+    function isWellTakenCareOf(state) {
+      // If feed meter is too low, considered neglected
+      return state.feedLevel >= MIN_SAFE_FEED_FOR_CHECK;
+    }
+
+    function onMonthPassed() {
       if (state.isDead) return;
 
-      const idx = stages.indexOf(state.stage);
-      if (idx < stages.length - 1) {
-        state.stage = stages[idx + 1];
+      state.months += 1;
+
+      // Feed meter decays every month
+      state.feedLevel -= FEED_DECAY_PER_MONTH;
+      if (state.feedLevel < 0) state.feedLevel = 0;
+
+      // Monthly income
+      const monthMult = monthIncomeMultiplier(state.years);
+      state.money += 1 * monthMult;
+
+      // Year rollover
+      if (state.months >= MONTHS_PER_YEAR) {
+        state.months -= MONTHS_PER_YEAR;
+        state.years += 1;
+
+        // Yearly income
+        const yearMult = yearIncomeMultiplier(state.years);
+        state.money += 10 * yearMult;
+
+        // Every 3 years → care check
+        if (state.years % 3 === 0) {
+          if (!isWellTakenCareOf(state)) {
+            state.isDead = true;
+            state.stage = 'dead';
+          }
+        }
       }
-      if (state.stage === 'dead') {
-        state.isDead = true;
+
+      // Stage update
+      if (!state.isDead) {
+        state.stage = computeStage(state.years);
       }
 
       saveState(state);
       updateView();
     }
 
-    ageBtn.addEventListener('click', ageUp);
+    function feedPet() {
+      if (state.isDead) return;
+      if (state.money < FEED_COST) return;
 
-    resetBtn.addEventListener('click', () => {
-      if (!confirm('This will wipe your pet and start a new one. Continue?')) return;
-      localStorage.removeItem(SAVE_KEY);
-      state = { stage: 'baby', isDead: false };
+      state.money -= FEED_COST;
+      state.feedLevel += FEED_AMOUNT;
+      if (state.feedLevel > MAX_FEED_LEVEL) {
+        state.feedLevel = MAX_FEED_LEVEL;
+      }
+
       saveState(state);
       updateView();
-    });
+    }
 
-    // initial draw
+    feedBtn.addEventListener('click', feedPet);
+
+    // Initial draw and start timer
     updateView();
+    setInterval(onMonthPassed, MS_PER_MONTH);
   </script>
 </body>
 </html>
