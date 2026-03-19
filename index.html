@@ -180,6 +180,62 @@
     #jobBtn:hover { background:#236b23; }
     #jobBtn:disabled { opacity:0.5; cursor:default; }
 
+    #adminToggleBtn {
+      padding:8px 12px;
+      cursor:pointer;
+      background:#222;
+      color:#888;
+      border:1px solid #444;
+      font-size:12px;
+    }
+    #adminPanel {
+      display:none;
+      margin-top:12px;
+      padding:10px;
+      border:1px solid #ffaa00;
+      background:#1a1400;
+    }
+    #adminPanel input {
+      width:80px;
+      padding:4px;
+      margin:3px 4px 3px 0;
+      background:#000;
+      border:1px solid #666;
+      color:white;
+    }
+    #adminPanel button {
+      padding:5px 10px;
+      background:#333;
+      color:white;
+      border:1px solid #ffaa00;
+    }
+    #adminMsg {
+      font-size:12px;
+      color:#ffaa00;
+      margin-top:4px;
+      min-height:16px;
+    }
+    #adminLoginPanel {
+      display:none;
+      margin-top:12px;
+      padding:10px;
+      border:1px solid #555;
+      background:#111;
+    }
+    #adminLoginPanel input {
+      padding:4px;
+      width:140px;
+      background:#000;
+      border:1px solid #666;
+      color:white;
+    }
+    #adminLoginMsg {
+      font-size:12px;
+      color:#ff5555;
+      margin-top:4px;
+      min-height:16px;
+    }
+
     #jobDisplay {
       margin-top:6px;
       font-size:13px;
@@ -266,6 +322,29 @@
         <br />
         <button id="gambleBtn">Gamble!</button>
         <div id="gamblingMessage"></div>
+      </div>
+
+      <!-- Admin login -->
+      <div style="margin-top:16px;">
+        <button id="adminToggleBtn">🔒 Admin</button>
+      </div>
+      <div id="adminLoginPanel">
+        <div style="font-size:13px;margin-bottom:6px;">Enter admin password:</div>
+        <input type="password" id="adminPasswordInput" placeholder="Password" />
+        <button id="adminLoginBtn">Login</button>
+        <div id="adminLoginMsg"></div>
+      </div>
+      <div id="adminPanel">
+        <div style="color:#ffaa00;font-weight:bold;margin-bottom:6px;">⚙️ Admin Panel</div>
+        <div>
+          Set Age: <input type="number" id="adminAgeInput" min="0" max="200" placeholder="e.g. 25" />
+          <button id="adminSetAgeBtn">Set</button>
+        </div>
+        <div style="margin-top:6px;">
+          Set Money: <input type="number" id="adminMoneyInput" min="0" placeholder="e.g. 5000" />
+          <button id="adminSetMoneyBtn">Set</button>
+        </div>
+        <div id="adminMsg"></div>
       </div>
     </div>
 
