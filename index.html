@@ -23,67 +23,89 @@
     #controls { margin-top:10px; }
     button { margin:5px 5px 0 0; padding:8px 12px; cursor:pointer; }
 
-    #feedMeterBar { width:200px; height:20px; border:1px solid #fff; margin:5px 0; background:#333; position:relative; }
+    #feedMeterBar { width:200px; height:20px; border:1px solid #fff; margin:5px 0; background:#333; }
     #feedMeterFill { height:100%; background:#4caf50; width:100%; }
-    #knowledgeMeterBar { width:200px; height:20px; border:1px solid #fff; margin:5px 0; background:#222; position:relative; }
+    #knowledgeMeterBar { width:200px; height:20px; border:1px solid #fff; margin:5px 0; background:#222; }
     #knowledgeMeterFill { height:100%; background:#2196f3; width:0%; }
 
     #nextMonthTimer {
       position:fixed; top:8px; right:10px; font-size:14px;
       background:rgba(0,0,0,0.6); padding:6px 10px; border-radius:4px;
     }
+    #currentUserDisplay {
+      position:fixed; top:8px; left:10px; font-size:13px;
+      background:rgba(0,0,0,0.6); padding:6px 10px; border-radius:4px; color:#aabbff;
+    }
 
-    /* Prompt overlays */
+    /* Overlays */
     .prompt-overlay {
-      position:fixed; inset:0; background:rgba(0,0,0,0.82);
+      position:fixed; inset:0; background:rgba(0,0,0,0.85);
       display:none; align-items:center; justify-content:center; z-index:999;
     }
     .prompt-box {
       background:#222; border:1px solid #555; padding:24px;
-      max-width:340px; width:90%; text-align:center; box-shadow:0 0 12px #000;
-      white-space:pre-wrap;
+      max-width:360px; width:90%; text-align:center;
+      box-shadow:0 0 16px #000; white-space:pre-wrap;
     }
     .prompt-box button { margin-top:10px; }
 
+    /* Username prompt */
+    #usernamePromptBox { border-color:#4466ff; background:#0d0d1f; }
+    #usernamePromptBox input {
+      width:200px; padding:8px; margin-top:10px;
+      background:#000; border:1px solid #4466ff; color:white; font-size:15px;
+      border-radius:3px;
+    }
+    #usernamePromptMsg { font-size:12px; color:#ff5555; margin-top:6px; min-height:16px; }
+    #usernameConfirmBtn { background:#1a2a66; color:#aabbff; border:1px solid #4466ff; padding:8px 18px; }
+
     #jobPromptBox  { border-color:#4caf50; background:#111a11; }
     #namePromptBox { border-color:#ffaa00; background:#1a1400; }
-    #namePromptBox input {
-      width:180px; padding:6px; margin-top:8px;
-      background:#000; border:1px solid #666; color:white; font-size:14px;
-    }
 
-    /* Leaderboard */
-    #leaderboardBox {
-      background:#0d0d1f; border:1px solid #4466ff; padding:20px;
-      max-width:400px; width:90%; text-align:left;
-      box-shadow:0 0 16px #000; max-height:80vh; overflow-y:auto;
+    /* Leaderboard sidebar */
+    #leaderboardSidebar {
+      width:220px;
+      min-width:220px;
+      background:#0a0a1a;
+      border:1px solid #4466ff;
+      padding:14px;
+      font-size:13px;
+      align-self:stretch;
     }
-    #leaderboardBox h3 { margin:0 0 12px; text-align:center; color:#aabbff; }
-    .lb-row { display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid #222; font-size:13px; }
-    .lb-rank { color:#888; width:24px; }
-    .lb-name { flex:1; padding:0 8px; }
-    .lb-age  { color:#ff9944; padding:0 8px; }
-    .lb-money { color:#4caf50; }
+    #leaderboardSidebar h3 {
+      margin:0 0 10px; text-align:center; color:#aabbff; font-size:14px;
+    }
+    #liveStatus {
+      font-size:11px; color:#555; text-align:center; margin-bottom:8px;
+    }
+    .lb-row {
+      display:flex; justify-content:space-between;
+      padding:4px 0; border-bottom:1px solid #1a1a2a;
+      gap:4px;
+    }
+    .lb-rank  { color:#555; width:18px; flex-shrink:0; }
+    .lb-name  { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#ddd; }
+    .lb-name.is-you { color:#aabbff; font-weight:bold; }
+    .lb-age   { color:#ff9944; flex-shrink:0; }
+    .lb-money { color:#4caf50; flex-shrink:0; }
+    #lbEmpty  { color:#444; text-align:center; margin-top:10px; }
 
     /* Gambling */
     #gamblingPanel { margin-top:15px; padding:10px; border:1px solid #444; background:#181818; display:none; }
     #gamblingPanel input { width:80px; padding:4px; margin:4px 4px 4px 0; background:#000; border:1px solid #555; color:white; }
     #gamblingMessage { margin-top:5px; min-height:18px; font-size:13px; }
 
-    /* Special buttons */
     #restartBtn { display:none; padding:8px 12px; cursor:pointer; background:#8b0000; color:white; border:1px solid #ff4444; margin-top:10px; }
     #restartBtn:hover { background:#aa0000; }
     #jobBtn { display:none; padding:8px 12px; cursor:pointer; background:#1a5c1a; color:white; border:1px solid #4caf50; }
     #jobBtn:hover { background:#236b23; }
     #jobBtn:disabled { opacity:0.5; cursor:default; }
     #jobDisplay { margin-top:4px; font-size:13px; color:#aaffaa; }
-    #leaderboardBtn { padding:8px 12px; cursor:pointer; background:#0d0d1f; color:#aabbff; border:1px solid #4466ff; }
-    #leaderboardBtn:hover { background:#1a1a3a; }
 
     /* Admin */
-    #adminToggleBtn { padding:8px 12px; cursor:pointer; background:#1a1a1a; color:#666; border:1px solid #333; font-size:12px; }
-    #adminLoginPanel { display:none; margin-top:10px; padding:10px; border:1px solid #444; background:#0d0d0d; }
-    #adminLoginPanel input { padding:5px; width:150px; background:#000; border:1px solid #555; color:white; }
+    #adminToggleBtn { padding:8px 12px; cursor:pointer; background:#1a1a1a; color:#555; border:1px solid #2a2a2a; font-size:12px; }
+    #adminLoginPanel { display:none; margin-top:10px; padding:10px; border:1px solid #333; background:#0d0d0d; }
+    #adminLoginPanel input { padding:5px; width:150px; background:#000; border:1px solid #444; color:white; }
     #adminLoginMsg { font-size:12px; color:#ff5555; margin-top:4px; min-height:16px; }
     #adminPanel { display:none; margin-top:10px; padding:10px; border:1px solid #ffaa00; background:#1a1400; }
     #adminPanel input { width:80px; padding:4px; margin:3px 4px 3px 0; background:#000; border:1px solid #666; color:white; }
@@ -94,6 +116,20 @@
 <body>
 <h1>Raise a Jefferson</h1>
 <div id="nextMonthTimer">Next month in: 10s</div>
+<div id="currentUserDisplay">👤 —</div>
+
+<!-- Username prompt (shown on first load) -->
+<div id="usernamePromptOverlay" class="prompt-overlay" style="display:flex;">
+  <div id="usernamePromptBox" class="prompt-box">
+    <div style="font-size:20px;margin-bottom:4px;">🐣 Welcome!</div>
+    <div style="font-size:14px;color:#aaa;">Enter a username to track your score on the leaderboard.</div>
+    <div><input type="text" id="usernameInput" maxlength="20" placeholder="Your username" /></div>
+    <div style="margin-top:4px;">
+      <button id="usernameConfirmBtn">Start Playing</button>
+    </div>
+    <div id="usernamePromptMsg"></div>
+  </div>
+</div>
 
 <!-- School prompt -->
 <div id="schoolPromptOverlay" class="prompt-overlay">
@@ -117,44 +153,17 @@
   </div>
 </div>
 
-<!-- Name / leaderboard submit prompt (shown on death) -->
-<div id="namePromptOverlay" class="prompt-overlay">
-  <div id="namePromptBox" class="prompt-box">
-    <div style="font-size:18px;">☠️ Jefferson has died!</div>
-    <div style="margin-top:6px;font-size:13px;color:#ccc;">Enter your name for the leaderboard:</div>
-    <div><input type="text" id="nameInput" maxlength="24" placeholder="Your name" /></div>
-    <div>
-      <button id="nameSubmitBtn">Submit Score</button>
-      <button id="nameSkipBtn">Skip</button>
-    </div>
-    <div id="nameSubmitMsg" style="font-size:12px;margin-top:6px;color:#aaffaa;min-height:16px;"></div>
-  </div>
-</div>
-
-<!-- Leaderboard overlay -->
-<div id="leaderboardOverlay" class="prompt-overlay">
-  <div id="leaderboardBox">
-    <h3>🏆 Leaderboard — Longest Lived</h3>
-    <div id="leaderboardList">Loading...</div>
-    <div style="text-align:center;margin-top:14px;">
-      <button id="leaderboardCloseBtn">Close</button>
-    </div>
-  </div>
-</div>
-
 <div id="layout">
+  <!-- LEFT: UI -->
   <div id="uiColumn">
     <div id="status"></div>
-
     <div id="info">
       <div id="ageDisplay">Age: 0 years</div>
       <div id="monthsDisplay">Months alive: 0</div>
       <div id="moneyDisplay">Money: $0</div>
-
       <div>Feed meter:</div>
       <div id="feedMeterBar"><div id="feedMeterFill"></div></div>
       <div id="feedText"></div>
-
       <div style="margin-top:8px;">Knowledge meter:</div>
       <div id="knowledgeMeterBar"><div id="knowledgeMeterFill"></div></div>
       <div id="knowledgeText"></div>
@@ -166,8 +175,6 @@
       <button id="gamblingToggleBtn">Gambling (Unlocks at 18)</button>
       <button id="jobBtn">💼 Get a Job (Free, unlocks at 16)</button>
       <div id="jobDisplay"></div>
-      <br>
-      <button id="leaderboardBtn">🏆 Leaderboard</button>
       <br>
       <button id="restartBtn">🔄 Restart Game</button>
     </div>
@@ -193,19 +200,18 @@
     <div id="adminPanel">
       <div style="color:#ffaa00;font-weight:bold;margin-bottom:8px;">⚙️ Admin Panel</div>
       <div>
-        Set Age:
-        <input type="number" id="adminAgeInput" min="0" max="200" placeholder="e.g. 25" />
+        Set Age: <input type="number" id="adminAgeInput" min="0" max="200" placeholder="e.g. 25" />
         <button id="adminSetAgeBtn">Set</button>
       </div>
       <div style="margin-top:6px;">
-        Set Money:
-        <input type="number" id="adminMoneyInput" min="0" placeholder="e.g. 5000" />
+        Set Money: <input type="number" id="adminMoneyInput" min="0" placeholder="e.g. 5000" />
         <button id="adminSetMoneyBtn">Set</button>
       </div>
       <div id="adminMsg"></div>
     </div>
   </div>
 
+  <!-- MIDDLE: Jefferson -->
   <div id="petWrapper">
     <img id="baseSprite" src="https://i.ibb.co/nNqGSWWN/IMG-2528.png" alt="Jefferson" />
     <img id="diaperOverlay" class="overlay"
@@ -214,6 +220,13 @@
     <img id="beardOverlay" class="overlay"
          src="https://www.freepnglogos.com/uploads/beard-png/mustache-brown-beard-transparent-png-stickpng-1.png"
          style="display:none;" />
+  </div>
+
+  <!-- RIGHT: Live Leaderboard -->
+  <div id="leaderboardSidebar">
+    <h3>🏆 Leaderboard</h3>
+    <div id="liveStatus">Updating...</div>
+    <div id="leaderboardList"><div id="lbEmpty">No scores yet</div></div>
   </div>
 </div>
 
@@ -225,6 +238,7 @@
 
   // ── Constants ─────────────────────────────────────────────
   const SAVE_KEY             = 'petSave';
+  const USERNAME_KEY         = 'jeffersonUsername';
   const STAGE_BABY_MAX       = 10;
   const STAGE_TEEN_MAX       = 20;
   const STAGE_ADULT_MAX      = 60;
@@ -244,6 +258,10 @@
   const KNOWLEDGE_GAIN       = 10;
   const YEAR_UPGRADE_COST    = 1000;
   const ADMIN_PASSWORD       = 'Password 12th';
+  const LB_REFRESH_MS        = 5000; // live refresh interval
+
+  // ── Username ──────────────────────────────────────────────
+  let currentUsername = localStorage.getItem(USERNAME_KEY) || null;
 
   // ── State ─────────────────────────────────────────────────
   function freshState() {
@@ -255,76 +273,73 @@
     };
   }
   function loadState() {
-    try { return Object.assign(freshState(), JSON.parse(localStorage.getItem(SAVE_KEY) || '{}')); }
+    try { return Object.assign(freshState(), JSON.parse(localStorage.getItem(SAVE_KEY)||'{}')); }
     catch { return freshState(); }
   }
   function saveState(s) { localStorage.setItem(SAVE_KEY, JSON.stringify(s)); }
 
   let state = loadState();
 
-  // ── DOM refs ──────────────────────────────────────────────
+  // ── DOM ───────────────────────────────────────────────────
   const $ = id => document.getElementById(id);
-  const statusEl            = $('status');
-  const diaperOverlay       = $('diaperOverlay');
-  const beardOverlay        = $('beardOverlay');
-  const ageDisplay          = $('ageDisplay');
-  const monthsDisplay       = $('monthsDisplay');
-  const moneyDisplay        = $('moneyDisplay');
-  const feedMeterFill       = $('feedMeterFill');
-  const feedText            = $('feedText');
-  const feedBtn             = $('feedBtn');
-  const knowledgeMeterFill  = $('knowledgeMeterFill');
-  const knowledgeText       = $('knowledgeText');
-  const nextMonthTimerEl    = $('nextMonthTimer');
-  const upgradeBtn          = $('upgradeBtn');
-  const gamblingToggleBtn   = $('gamblingToggleBtn');
-  const gamblingPanel       = $('gamblingPanel');
-  const gamblingBetInput    = $('gamblingBet');
-  const gamblingMessage     = $('gamblingMessage');
-  const gambleBtn           = $('gambleBtn');
-  const jobBtn              = $('jobBtn');
-  const jobDisplay          = $('jobDisplay');
-  const jobPromptOverlay    = $('jobPromptOverlay');
-  const jobPromptText       = $('jobPromptText');
-  const jobYesBtn           = $('jobYesBtn');
-  const jobNoBtn            = $('jobNoBtn');
-  const schoolPromptOverlay = $('schoolPromptOverlay');
-  const schoolPromptText    = $('schoolPromptText');
-  const schoolYesBtn        = $('schoolYesBtn');
-  const schoolNoBtn         = $('schoolNoBtn');
-  const restartBtn          = $('restartBtn');
-  const namePromptOverlay   = $('namePromptOverlay');
-  const nameInput           = $('nameInput');
-  const nameSubmitBtn       = $('nameSubmitBtn');
-  const nameSkipBtn         = $('nameSkipBtn');
-  const nameSubmitMsg       = $('nameSubmitMsg');
-  const leaderboardBtn      = $('leaderboardBtn');
-  const leaderboardOverlay  = $('leaderboardOverlay');
-  const leaderboardList     = $('leaderboardList');
-  const leaderboardCloseBtn = $('leaderboardCloseBtn');
-  const adminToggleBtn      = $('adminToggleBtn');
-  const adminLoginPanel     = $('adminLoginPanel');
-  const adminPasswordInput  = $('adminPasswordInput');
-  const adminLoginBtn       = $('adminLoginBtn');
-  const adminLoginMsg       = $('adminLoginMsg');
-  const adminPanel          = $('adminPanel');
-  const adminAgeInput       = $('adminAgeInput');
-  const adminSetAgeBtn      = $('adminSetAgeBtn');
-  const adminMoneyInput     = $('adminMoneyInput');
-  const adminSetMoneyBtn    = $('adminSetMoneyBtn');
-  const adminMsg            = $('adminMsg');
+  const statusEl             = $('status');
+  const diaperOverlay        = $('diaperOverlay');
+  const beardOverlay         = $('beardOverlay');
+  const ageDisplay           = $('ageDisplay');
+  const monthsDisplay        = $('monthsDisplay');
+  const moneyDisplay         = $('moneyDisplay');
+  const feedMeterFill        = $('feedMeterFill');
+  const feedText             = $('feedText');
+  const feedBtn              = $('feedBtn');
+  const knowledgeMeterFill   = $('knowledgeMeterFill');
+  const knowledgeText        = $('knowledgeText');
+  const nextMonthTimerEl     = $('nextMonthTimer');
+  const currentUserDisplay   = $('currentUserDisplay');
+  const upgradeBtn           = $('upgradeBtn');
+  const gamblingToggleBtn    = $('gamblingToggleBtn');
+  const gamblingPanel        = $('gamblingPanel');
+  const gamblingBetInput     = $('gamblingBet');
+  const gamblingMessage      = $('gamblingMessage');
+  const gambleBtn            = $('gambleBtn');
+  const jobBtn               = $('jobBtn');
+  const jobDisplay           = $('jobDisplay');
+  const jobPromptOverlay     = $('jobPromptOverlay');
+  const jobPromptText        = $('jobPromptText');
+  const jobYesBtn            = $('jobYesBtn');
+  const jobNoBtn             = $('jobNoBtn');
+  const schoolPromptOverlay  = $('schoolPromptOverlay');
+  const schoolPromptText     = $('schoolPromptText');
+  const schoolYesBtn         = $('schoolYesBtn');
+  const schoolNoBtn          = $('schoolNoBtn');
+  const restartBtn           = $('restartBtn');
+  const leaderboardList      = $('leaderboardList');
+  const liveStatus           = $('liveStatus');
+  const usernamePromptOverlay= $('usernamePromptOverlay');
+  const usernameInput        = $('usernameInput');
+  const usernameConfirmBtn   = $('usernameConfirmBtn');
+  const usernamePromptMsg    = $('usernamePromptMsg');
+  const adminToggleBtn       = $('adminToggleBtn');
+  const adminLoginPanel      = $('adminLoginPanel');
+  const adminPasswordInput   = $('adminPasswordInput');
+  const adminLoginBtn        = $('adminLoginBtn');
+  const adminLoginMsg        = $('adminLoginMsg');
+  const adminPanel           = $('adminPanel');
+  const adminAgeInput        = $('adminAgeInput');
+  const adminSetAgeBtn       = $('adminSetAgeBtn');
+  const adminMoneyInput      = $('adminMoneyInput');
+  const adminSetMoneyBtn     = $('adminSetMoneyBtn');
+  const adminMsg             = $('adminMsg');
 
-  // ── Timer state ───────────────────────────────────────────
+  // ── Timers / flags ────────────────────────────────────────
   let monthIntervalId      = null;
   let countdownIntervalId  = null;
+  let lbIntervalId         = null;
   let currentMsPerMonth    = state.hasYearUpgrade ? FAST_MS_PER_MONTH : BASE_MS_PER_MONTH;
   let nextMonthRemainingMs = currentMsPerMonth;
-
-  // ── Prompt flags ──────────────────────────────────────────
-  let waitingForSchool = false;
-  let waitingForJob    = false;
-  let pendingJobEvent  = null;
-  let adminUnlocked    = false;
+  let waitingForSchool     = false;
+  let waitingForJob        = false;
+  let pendingJobEvent      = null;
+  let adminUnlocked        = false;
 
   // ── Helpers ───────────────────────────────────────────────
   function computeStage(y) {
@@ -333,12 +348,40 @@
     if (y < STAGE_ADULT_MAX) return 'adult';
     return 'old';
   }
-  function knowledgeMult()  { return 1 + (state.knowledge / MAX_KNOWLEDGE); }
-  function feedCost()       { return state.hasYearUpgrade ? UPGRADED_FEED_COST   : BASE_FEED_COST; }
-  function feedAmount()     { return state.hasYearUpgrade ? UPGRADED_FEED_AMOUNT : BASE_FEED_AMOUNT; }
-  function schoolCost()     { return state.hasYearUpgrade ? UPG_SCHOOL_COST      : BASE_SCHOOL_COST; }
-  function monthBase(y)     { return y<10?1 : y<20?2 : y<60?3 : 4; }
-  function yearBase(y)      { return y<10?10 : y<20?15 : y<60?20 : 25; }
+  const knowledgeMult = () => 1 + (state.knowledge / MAX_KNOWLEDGE);
+  const feedCost      = () => state.hasYearUpgrade ? UPGRADED_FEED_COST   : BASE_FEED_COST;
+  const feedAmount    = () => state.hasYearUpgrade ? UPGRADED_FEED_AMOUNT : BASE_FEED_AMOUNT;
+  const schoolCost    = () => state.hasYearUpgrade ? UPG_SCHOOL_COST      : BASE_SCHOOL_COST;
+  const monthBase     = y  => y<10?1 : y<20?2 : y<60?3 : 4;
+  const yearBase      = y  => y<10?10 : y<20?15 : y<60?20 : 25;
+
+  // ── Username prompt ───────────────────────────────────────
+  function initUsername() {
+    if (currentUsername) {
+      usernamePromptOverlay.style.display = 'none';
+      currentUserDisplay.textContent = `👤 ${currentUsername}`;
+      startGame();
+    } else {
+      usernamePromptOverlay.style.display = 'flex';
+      setTimeout(() => usernameInput.focus(), 100);
+    }
+  }
+
+  function confirmUsername() {
+    const val = usernameInput.value.trim();
+    if (!val || val.length < 2) {
+      usernamePromptMsg.textContent = 'Please enter at least 2 characters.';
+      return;
+    }
+    currentUsername = val;
+    localStorage.setItem(USERNAME_KEY, currentUsername);
+    usernamePromptOverlay.style.display = 'none';
+    currentUserDisplay.textContent = `👤 ${currentUsername}`;
+    startGame();
+  }
+
+  usernameConfirmBtn.addEventListener('click', confirmUsername);
+  usernameInput.addEventListener('keydown', e => { if (e.key === 'Enter') confirmUsername(); });
 
   // ── View ──────────────────────────────────────────────────
   function updateView() {
@@ -382,7 +425,6 @@
     gamblingToggleBtn.disabled = !canGamble;
     if (!canGamble) gamblingPanel.style.display = 'none';
 
-    // Job button
     if (state.isDead || state.hasJob) {
       jobBtn.style.display = 'none';
     } else {
@@ -399,26 +441,20 @@
   function maybePromptSchool(yr) {
     if (state.isDead || waitingForSchool || waitingForJob) return;
     waitingForSchool = true;
-    const cost = schoolCost();
     schoolPromptText.textContent =
-      `NEW YEAR 🎉\n\nJefferson is now ${yr} years old.\nSend to school this year for $${cost}?`;
+      `NEW YEAR 🎉\n\nJefferson is now ${yr} years old.\nSend to school this year for $${schoolCost()}?`;
     schoolPromptOverlay.style.display = 'flex';
   }
-
   function handleSchoolChoice(go) {
     if (!waitingForSchool) return;
     waitingForSchool = false;
     schoolPromptOverlay.style.display = 'none';
-    if (go && !state.isDead) {
-      const cost = schoolCost();
-      if (state.money >= cost) {
-        state.money -= cost;
-        state.knowledge = Math.min(MAX_KNOWLEDGE, state.knowledge + KNOWLEDGE_GAIN);
-      }
+    if (go && !state.isDead && state.money >= schoolCost()) {
+      state.money -= schoolCost();
+      state.knowledge = Math.min(MAX_KNOWLEDGE, state.knowledge + KNOWLEDGE_GAIN);
     }
     saveState(state); updateView();
   }
-
   schoolYesBtn.addEventListener('click', () => handleSchoolChoice(true));
   schoolNoBtn.addEventListener('click',  () => handleSchoolChoice(false));
 
@@ -427,22 +463,20 @@
     if (state.isDead || !state.hasJob || waitingForJob || waitingForSchool) return;
     waitingForJob = true;
     state.lastJobEventYear = state.years;
-
     const isNewJob = Math.random() < 0.2;
     if (isNewJob) {
       const newPay = state.jobIncomePerMonth * 2;
       pendingJobEvent = { type:'newjob', amount:newPay };
       jobPromptText.textContent =
-        `🏢 New Job Offer!\n\nJefferson has been headhunted!\nNew job pays $${newPay}/month\n(currently $${state.jobIncomePerMonth}/month)\n\nAccept?`;
+        `🏢 New Job Offer!\n\nJefferson has been headhunted!\nNew job: $${newPay}/month\n(current: $${state.jobIncomePerMonth}/month)\n\nAccept?`;
     } else {
       const raise = Math.max(2, Math.round(state.jobIncomePerMonth * 0.2));
       pendingJobEvent = { type:'raise', amount:raise };
       jobPromptText.textContent =
-        `📈 Raise!\n\nJefferson's boss is offering +$${raise}/month\n(currently $${state.jobIncomePerMonth}/month)\n\nAccept?`;
+        `📈 Raise!\n\nBoss offers +$${raise}/month\n(current: $${state.jobIncomePerMonth}/month)\n\nAccept?`;
     }
     jobPromptOverlay.style.display = 'flex';
   }
-
   function handleJobChoice(accept) {
     if (!waitingForJob || !pendingJobEvent) return;
     waitingForJob = false;
@@ -454,10 +488,8 @@
     pendingJobEvent = null;
     saveState(state); updateView();
   }
-
   jobYesBtn.addEventListener('click', () => handleJobChoice(true));
   jobNoBtn.addEventListener('click',  () => handleJobChoice(false));
-
   jobBtn.addEventListener('click', () => {
     if (state.isDead || state.hasJob || state.years < 16) return;
     state.hasJob = true;
@@ -479,92 +511,83 @@
       state.years++;
       state.money += Math.round(yearBase(state.years) * knowledgeMult());
       maybePromptSchool(state.years);
-
       if (state.hasJob && !waitingForSchool && !waitingForJob) {
         if ((state.years - state.lastJobEventYear) >= 2) maybePromptJobEvent();
       }
-
       if (state.years % 3 === 0 && state.feedLevel < MIN_SAFE_FEED) {
         state.isDead = true;
-        state.stage = 'dead';
-        saveState(state); updateView();
-        // Prompt for leaderboard name
-        setTimeout(() => {
-          nameInput.value = '';
-          nameSubmitMsg.textContent = '';
-          namePromptOverlay.style.display = 'flex';
-          nameInput.focus();
-        }, 400);
+        state.stage  = 'dead';
+        saveState(state);
+        updateView();
+        // Submit score automatically on death
+        if (currentUsername) submitScore();
         return;
       }
     }
-
     if (!state.isDead) state.stage = computeStage(state.years);
     saveState(state); updateView();
   }
 
   // ── Leaderboard ───────────────────────────────────────────
-  async function submitScore(name) {
-    const { error } = await sb.from('leaderboard').insert([{
-      name: name,
-      age:  state.years,
+  async function submitScore() {
+    if (!currentUsername) return;
+    // Upsert: update existing row for this username if one exists, else insert
+    await sb.from('leaderboard').upsert([{
+      name:  currentUsername,
+      age:   state.years,
       money: state.money
-    }]);
-    return !error;
+    }], { onConflict: 'name' });
   }
 
-  async function loadLeaderboard() {
-    leaderboardList.textContent = 'Loading...';
+  // Push live score every 30s while alive (so others can see you on the board)
+  async function pushLiveScore() {
+    if (!currentUsername || state.isDead) return;
+    await sb.from('leaderboard').upsert([{
+      name:  currentUsername,
+      age:   state.years,
+      money: state.money
+    }], { onConflict: 'name' });
+  }
+
+  async function refreshLeaderboard() {
     const { data, error } = await sb
       .from('leaderboard')
       .select('name, age, money')
-      .order('age', { ascending:false })
+      .order('age',   { ascending:false })
       .order('money', { ascending:false })
       .limit(10);
 
-    if (error || !data) {
-      leaderboardList.textContent = 'Failed to load. Check your Supabase table.';
+    const now = new Date().toLocaleTimeString([], { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+    liveStatus.textContent = `Updated ${now}`;
+
+    if (error || !data || data.length === 0) {
+      leaderboardList.innerHTML = '<div id="lbEmpty" style="color:#444;text-align:center;margin-top:10px;">No scores yet</div>';
       return;
     }
-    if (data.length === 0) {
-      leaderboardList.textContent = 'No scores yet — be the first!';
-      return;
-    }
-    leaderboardList.innerHTML = data.map((row, i) => `
-      <div class="lb-row">
+
+    leaderboardList.innerHTML = data.map((row, i) => {
+      const isYou = row.name === currentUsername;
+      return `<div class="lb-row">
         <span class="lb-rank">${i+1}.</span>
-        <span class="lb-name">${row.name}</span>
-        <span class="lb-age">Age ${row.age}</span>
+        <span class="lb-name ${isYou ? 'is-you' : ''}" title="${row.name}">${row.name}${isYou ? ' (you)' : ''}</span>
+        <span class="lb-age">Yr ${row.age}</span>
         <span class="lb-money">$${row.money}</span>
-      </div>`).join('');
+      </div>`;
+    }).join('');
   }
 
-  nameSubmitBtn.addEventListener('click', async () => {
-    const name = nameInput.value.trim();
-    if (!name) { nameSubmitMsg.textContent = 'Please enter a name.'; return; }
-    nameSubmitBtn.disabled = true;
-    nameSubmitMsg.textContent = 'Submitting...';
-    const ok = await submitScore(name);
-    nameSubmitMsg.textContent = ok ? '✅ Score submitted!' : '❌ Failed to submit.';
-    nameSubmitBtn.disabled = false;
-    setTimeout(() => { namePromptOverlay.style.display = 'none'; }, 1200);
-  });
-
-  nameInput.addEventListener('keydown', e => { if (e.key === 'Enter') nameSubmitBtn.click(); });
-  nameSkipBtn.addEventListener('click', () => { namePromptOverlay.style.display = 'none'; });
-
-  leaderboardBtn.addEventListener('click', async () => {
-    leaderboardOverlay.style.display = 'flex';
-    await loadLeaderboard();
-  });
-  leaderboardCloseBtn.addEventListener('click', () => { leaderboardOverlay.style.display = 'none'; });
+  function startLiveLeaderboard() {
+    refreshLeaderboard();
+    lbIntervalId = setInterval(refreshLeaderboard, LB_REFRESH_MS);
+    // Push live score every 30s
+    setInterval(pushLiveScore, 30000);
+  }
 
   // ── Controls ──────────────────────────────────────────────
   feedBtn.addEventListener('click', () => {
     if (state.isDead) return;
-    const cost = feedCost();
-    if (state.money < cost) return;
-    state.money -= cost;
+    if (state.money < feedCost()) return;
+    state.money -= feedCost();
     state.feedLevel = Math.min(MAX_FEED_LEVEL, state.feedLevel + feedAmount());
     saveState(state); updateView();
   });
@@ -603,15 +626,15 @@
     state = freshState();
     saveState(state);
     currentMsPerMonth = BASE_MS_PER_MONTH;
-    waitingForSchool = waitingForJob = adminUnlocked = false;
+    waitingForSchool = waitingForJob = false;
     pendingJobEvent = null;
     schoolPromptOverlay.style.display = 'none';
     jobPromptOverlay.style.display    = 'none';
-    namePromptOverlay.style.display   = 'none';
     gamblingPanel.style.display       = 'none';
     adminPanel.style.display          = 'none';
     adminLoginPanel.style.display     = 'none';
-    adminToggleBtn.textContent        = '🔒 Admin';
+    adminUnlocked = false;
+    adminToggleBtn.textContent = '🔒 Admin';
     resetTimers(); updateView();
   });
 
@@ -623,35 +646,36 @@
     } else {
       const isOpen = adminLoginPanel.style.display === 'block';
       adminLoginPanel.style.display = isOpen ? 'none' : 'block';
-      if (!isOpen) { adminLoginMsg.textContent = ''; adminPasswordInput.value = ''; setTimeout(()=>adminPasswordInput.focus(),50); }
+      if (!isOpen) {
+        adminLoginMsg.textContent = '';
+        adminPasswordInput.value  = '';
+        setTimeout(() => adminPasswordInput.focus(), 50);
+      }
     }
   });
-
   adminLoginBtn.addEventListener('click', () => {
     if (adminPasswordInput.value === ADMIN_PASSWORD) {
       adminUnlocked = true;
       adminLoginPanel.style.display = 'none';
-      adminPanel.style.display = 'block';
-      adminToggleBtn.textContent = '⚙️ Admin';
-      adminLoginMsg.textContent = '';
+      adminPanel.style.display      = 'block';
+      adminToggleBtn.textContent    = '⚙️ Admin';
+      adminLoginMsg.textContent     = '';
     } else {
       adminLoginMsg.textContent = 'Wrong password.';
     }
   });
-  adminPasswordInput.addEventListener('keydown', e => { if (e.key === 'Enter') adminLoginBtn.click(); });
+  adminPasswordInput.addEventListener('keydown', e => { if (e.key==='Enter') adminLoginBtn.click(); });
 
   adminSetAgeBtn.addEventListener('click', () => {
     const val = parseInt(adminAgeInput.value, 10);
     if (isNaN(val) || val < 0) { adminMsg.textContent = 'Invalid age.'; return; }
-    state.years = val;
-    state.months = 0;
+    state.years = val; state.months = 0;
     state.isDead = false;
     state.stage = computeStage(val);
     if (state.hasJob) state.lastJobEventYear = val;
     saveState(state); updateView();
     adminMsg.textContent = `✅ Age set to ${val}.`;
   });
-
   adminSetMoneyBtn.addEventListener('click', () => {
     const val = parseInt(adminMoneyInput.value, 10);
     if (isNaN(val) || val < 0) { adminMsg.textContent = 'Invalid amount.'; return; }
@@ -676,17 +700,22 @@
       if (!state.isDead) { onMonthPassed(); nextMonthRemainingMs = currentMsPerMonth; }
     }, currentMsPerMonth);
   }
-
   function resetTimers() {
     if (countdownIntervalId) clearInterval(countdownIntervalId);
     if (monthIntervalId)     clearInterval(monthIntervalId);
     startTimers();
   }
 
-  // ── Init ──────────────────────────────────────────────────
-  updateView();
-  startTimers();
-  nextMonthTimerEl.textContent = `Next month in: ${currentMsPerMonth/1000}s`;
+  // ── Start ─────────────────────────────────────────────────
+  function startGame() {
+    updateView();
+    startTimers();
+    startLiveLeaderboard();
+    nextMonthTimerEl.textContent = `Next month in: ${currentMsPerMonth/1000}s`;
+  }
+
+  // Kick off — show username prompt or go straight to game
+  initUsername();
 </script>
 </body>
 </html>
